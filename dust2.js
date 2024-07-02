@@ -165,7 +165,7 @@ window.GameSave = gameSave;
 function gameSave(a) {
     if (0 == a.length || 0 != db) return "";
     saveGameFromScreen();
-    Yc(1);
+    createGameSaveString(1);
     for (var c = a = 0; c < eb.length; c++) a += eb.charCodeAt(c) * ((c & 15) + 1);
     return a = eb + chars[a & 63]
 }
@@ -181,7 +181,7 @@ function gameLoad(a) {
         Zc = a.substring(0, a.length - 1);
         return 0
     }
-    0 == a.length && 0 != Zc.length && (eb = Zc, Zc = "", ad(1), loadGameToScreen());
+    0 == a.length && 0 != Zc.length && (eb = Zc, Zc = "", loadAndDecodeGameSaveString(1), loadGameToScreen());
     return -1
 }
 var cd = 0,
@@ -234,7 +234,7 @@ function saveGameFromScreen() {
     ob = nb
 }
 
-function Yc(a) {
+function createGameSaveString(a) {
     var c, b;
     if (0 == a) {
         var d = new Uint8Array(8680),
@@ -334,7 +334,7 @@ function Yc(a) {
     eb = window.btoa(eb)
 }
 
-function ad(a) {
+function loadAndDecodeGameSaveString(a) {
     var c, b = window.atob(eb),
         d = [];
     fb = b.length;
@@ -700,7 +700,7 @@ function startScript(a, c, b, d) {
         }
         reset(0);
         saveGameFromScreen();
-        0 < db && (b = "/score/dust2.php?a=", b += db, AjaxRequest(b, ""), 1 == me && "ok" == ne[0] ? (eb = ne[1], ad(0), 0 < Za ? (loadGameToScreen(), lb = 1) : lb = 2) : lb = 2, isStopped = 1);
+        0 < db && (b = "/score/dust2.php?a=", b += db, AjaxRequest(b, ""), 1 == me && "ok" == ne[0] ? (eb = ne[1], loadAndDecodeGameSaveString(0), 0 < Za ? (loadGameToScreen(), lb = 1) : lb = 2) : lb = 2, isStopped = 1);
         ed(1);
         for (a = 0; a < s.length; a++) b = floor((2989 * (s[a] >> 16 & 255) + 5866 * (s[a] >> 8 & 255) + 1145 * (s[a] & 255)) / 1E4), Rc[a] = b << 16 | b << 8 | b;
         oe(0, 0, screenWidth, screenHeight, 4210752);
@@ -1287,7 +1287,7 @@ function Ge() {
             }
         }
         if (ga) {
-            lf(8, 288, 504, 288, 6684672);
+            drawSimulationLine(8, 288, 504, 288, 6684672);
         }
         drawCompositeTextUsingImage(f + 0 - 2, g + 70, "    " + floor(360 * Fa / 64) + "'", 8421631, 0, -1);
         drawCompositeTextUsingImage(f + 275, g + 112, "JOINT-n J-left J-right J-scale J-none J-blind".split(" ")[Ta], 15908203, 0, -1);
@@ -1634,7 +1634,7 @@ function Ge() {
                         return;
                     }
                     saveGameFromScreen();
-                    Yc(0);
+                    createGameSaveString(0);
                     g = "/score/dust2.php?a=";
                     g = g + $a;
                     g = g + ("&b=" + (cb ? "0" : "1"));
@@ -2039,11 +2039,11 @@ function handlesDrawingMethods() {
                 for (e = (b << 11) + (c << 2), a = 0; 16 > a; a++) v[e] = Tc[x[d]][a], e += u[a];
     if (2 == backgroundDrawType)
         for (b = 2, d = 258; b < Fe; b++, d += 4)
-            for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), f = floor(10 * normalize(t)), 2 > f || (48 < f && (f = 48), a = (c << 2) + 2, n = (b << 2) + 2, lf(a, n, a + t.x * f, n + t.y * f, 0 | f << 17)));
+            for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), f = floor(10 * normalize(t)), 2 > f || (48 < f && (f = 48), a = (c << 2) + 2, n = (b << 2) + 2, drawSimulationLine(a, n, a + t.x * f, n + t.y * f, 0 | f << 17)));
     else if (9 == backgroundDrawType)
         for (b = 2, d = 258; b < Fe; b++, d += 4)
             for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), a = vectorLength2(t), 0.2 > a || (g = floor(min(16 * a, 80)),
-                f = 0, 0 < ue[d] && (f = floor(min(ue[d] * a, 80))), m = 0, 0 > ue[d] && (m = floor(min(-ue[d] * a, 80))), a = (c << 2) + 5 * P[d], n = (b << 2) + 5 * Q[d], e = (c + 1 << 2) + 5 * P[d + 1], F = (b << 2) + 5 * Q[d + 1], lf(a, n, e, F, f << 16 | g << 8 | m), e = (c << 2) + 5 * P[d + w], F = (b + 1 << 2) + 5 * Q[d + w], lf(a, n, e, F, f << 16 | g << 8 | m)));
+                f = 0, 0 < ue[d] && (f = floor(min(ue[d] * a, 80))), m = 0, 0 > ue[d] && (m = floor(min(-ue[d] * a, 80))), a = (c << 2) + 5 * P[d], n = (b << 2) + 5 * Q[d], e = (c + 1 << 2) + 5 * P[d + 1], F = (b << 2) + 5 * Q[d + 1], drawSimulationLine(a, n, e, F, f << 16 | g << 8 | m), e = (c << 2) + 5 * P[d + w], F = (b + 1 << 2) + 5 * Q[d + w], drawSimulationLine(a, n, e, F, f << 16 | g << 8 | m)));
     else if (14 == backgroundDrawType)
         for (a = 288 * screenWidth; 4096 < a; a--) I[a] == Jb ? (f = 255 - (255 - (v[a] >> 16 & 255) >> 1), g = 255 - (255 - (v[a] >> 8 & 255) >> 1), m = 255 - (255 - (v[a] & 255) >> 1), v[a] = f << 16 | g << 8 | m) : I[a] < Lb && (v[a] = 0);
     if (2 <= gridLines) {
@@ -2149,16 +2149,16 @@ function Wf() {
             if (45 == ea || 25 ==
                 ea) e |= 16711680;
             if (45 == fa || 25 == fa) e |= 255;
-            lf(ia + 0.5, ja + 0.5, ia + 0.5 + 30 * na.x, ja + 0.5 + 30 * na.y, e)
+            drawSimulationLine(ia + 0.5, ja + 0.5, ia + 0.5 + 30 * na.x, ja + 0.5 + 30 * na.y, e)
         }
-        if (5 == ea || 5 == fa) e = 4210752, 5 == ea && (e |= 16711680), 5 == fa && (e |= 255), lf(ia + 0.5, ja + 0.5, ia + 0.5 + 20 * Math.cos(Fa * PI / 32), ja + 0.5 - 20 * Math.sin(Fa * PI / 32), e);
-        1 == Aa && (We && (ea < numberOfTypesOfElements || f) || Xe && (fa < numberOfTypesOfElements || g)) && lf(Da, Ea, ia, ja, 16711680);
-        if (64 == ea || 64 == fa) e = 4210752, 64 == ea && (e |= 16711680), 64 == fa && (e |= 255), lf(wb, xb, wb, xb + 13, e), lf(wb, xb, wb + 200, xb, e), lf(wb, xb + 13, wb + 200, xb + 13, e);
+        if (5 == ea || 5 == fa) e = 4210752, 5 == ea && (e |= 16711680), 5 == fa && (e |= 255), drawSimulationLine(ia + 0.5, ja + 0.5, ia + 0.5 + 20 * Math.cos(Fa * PI / 32), ja + 0.5 - 20 * Math.sin(Fa * PI / 32), e);
+        1 == Aa && (We && (ea < numberOfTypesOfElements || f) || Xe && (fa < numberOfTypesOfElements || g)) && drawSimulationLine(Da, Ea, ia, ja, 16711680);
+        if (64 == ea || 64 == fa) e = 4210752, 64 == ea && (e |= 16711680), 64 == fa && (e |= 255), drawSimulationLine(wb, xb, wb, xb + 13, e), drawSimulationLine(wb, xb, wb + 200, xb, e), drawSimulationLine(wb, xb + 13, wb + 200, xb + 13, e);
         if (65 == ea || 65 == fa)
             if (0 == Ga) {
-                if (65 == ea && We || 65 == fa && Xe) lf(Ha, Ia, Ja,
-                    Ia, 16761024), lf(Ha, Ka, Ja, Ka, 16761024), lf(Ha, Ia, Ha, Ka, 16761024), lf(Ja, Ia, Ja, Ka, 16761024)
-            } else c = ia - floor((Ja - Ha) / 2), b = ja - floor((Ka - Ia) / 2), e = Ja - Ha, a = Ka - Ia, lf(c, b, c + e, b, 12632319), lf(c, b + a, c + e, b + a, 12632319), lf(c, b, c, b + a, 12632319), lf(c + e, b, c + e, b + a, 12632319);
+                if (65 == ea && We || 65 == fa && Xe) drawSimulationLine(Ha, Ia, Ja,
+                    Ia, 16761024), drawSimulationLine(Ha, Ka, Ja, Ka, 16761024), drawSimulationLine(Ha, Ia, Ha, Ka, 16761024), drawSimulationLine(Ja, Ia, Ja, Ka, 16761024)
+            } else c = ia - floor((Ja - Ha) / 2), b = ja - floor((Ka - Ia) / 2), e = Ja - Ha, a = Ka - Ia, drawSimulationLine(c, b, c + e, b, 12632319), drawSimulationLine(c, b + a, c + e, b + a, 12632319), drawSimulationLine(c, b, c, b + a, 12632319), drawSimulationLine(c + e, b, c + e, b + a, 12632319);
         if (53 == ea || 53 == fa) {
             e = 4210752;
             53 == ea && (e |= 16711680);
@@ -2173,7 +2173,7 @@ function Wf() {
                     c = d + f[a] & 511;
                     b = floor((d + f[a]) / 512);
                     break
-                } - 1 != Ua ? lf(Ua & 511, Ua / 512, c, b, e) : lf(c, b, ia, ja, e)
+                } - 1 != Ua ? drawSimulationLine(Ua & 511, Ua / 512, c, b, e) : drawSimulationLine(c, b, ia, ja, e)
         }
     }
 }
@@ -2355,7 +2355,7 @@ var eg = new Float32Array(296 * screenWidth),
     V = new Float32Array(296 * screenWidth),
     Se = 0;
 
-function fg() {
+function bard_forcefield() {
     var a, c, b, d = new Vector,
         e;
     for (b = c = 0; 280 > c; c++, b += 16) {
@@ -2405,7 +2405,7 @@ function ig(a, c) {
 function Dd() {
     var a, c, b;
     for (b = 296 * screenWidth - 1; 0 <= b; b--) eg[b] = 0, Re[b] = isGravityOn ? 1 : 0;
-    fg();
+    bard_forcefield();
     c = 10;
     for (b = 258; 288 > c; c += 4, b += 4)
         for (a = 10; 504 > a; a += 4, b++) {
@@ -2420,7 +2420,7 @@ function Dd() {
 }
 
 function Of(a, c, b) {
-    0 == Se && fg();
+    0 == Se && bard_forcefield();
     a = (a << 2) + 2;
     c = (c << 2) + 2;
     0 < b ? hg(a, c) : ig(a, c);
@@ -2535,8 +2535,8 @@ function ff() {
 
 
 function Tf() {
-    for (var a, c, b, d = null, e = null, f = 0, g = 0, m = 0; m < sd; m++) 0 == ud[m] ? (d = C[vd[m]], f = E[vd[m]]) : 1 == ud[m] ? (d = stickManBodyPoints[vd[m] * hd + 1], f = 16769198) : 2 == ud[m] && (d = B[vd[m]], f = s[A[vd[m]]]), 0 == wd[m] ? (e = C[xd[m]], g = E[xd[m]]) : 1 == wd[m] ? (e = stickManBodyPoints[xd[m] * hd + 1], g = 16769198) : 2 == wd[m] && (e = B[xd[m]], g = s[A[xd[m]]]), a = (f >> 16 & 255) + (g >> 16 & 255) >> 1, c = (f >> 8 & 255) + (g >> 8 & 255) >> 1, b = (f & 255) + (g & 255) >> 1, 0 != Va ? 1 == Va ? lf(d.x, d.y, e.x, e.y, 14540253) : 2 == Va && lf(d.x, d.y, e.x, e.y, 2236962) : 5 != td[m] && (10 == backgroundDrawType ? (a = floor((2989 * a + 5866 * c + 1145 * b) / 1E4), lf(d.x, d.y, e.x, e.y,
-        a << 16 | a << 8 | a)) : 14 == backgroundDrawType ? lf(d.x, d.y, e.x, e.y, 0) : lf(d.x, d.y, e.x, e.y, a << 16 | c << 8 | b))
+    for (var a, c, b, d = null, e = null, f = 0, g = 0, m = 0; m < sd; m++) 0 == ud[m] ? (d = C[vd[m]], f = E[vd[m]]) : 1 == ud[m] ? (d = stickManBodyPoints[vd[m] * hd + 1], f = 16769198) : 2 == ud[m] && (d = B[vd[m]], f = s[A[vd[m]]]), 0 == wd[m] ? (e = C[xd[m]], g = E[xd[m]]) : 1 == wd[m] ? (e = stickManBodyPoints[xd[m] * hd + 1], g = 16769198) : 2 == wd[m] && (e = B[xd[m]], g = s[A[xd[m]]]), a = (f >> 16 & 255) + (g >> 16 & 255) >> 1, c = (f >> 8 & 255) + (g >> 8 & 255) >> 1, b = (f & 255) + (g & 255) >> 1, 0 != Va ? 1 == Va ? drawSimulationLine(d.x, d.y, e.x, e.y, 14540253) : 2 == Va && drawSimulationLine(d.x, d.y, e.x, e.y, 2236962) : 5 != td[m] && (10 == backgroundDrawType ? (a = floor((2989 * a + 5866 * c + 1145 * b) / 1E4), drawSimulationLine(d.x, d.y, e.x, e.y,
+        a << 16 | a << 8 | a)) : 14 == backgroundDrawType ? drawSimulationLine(d.x, d.y, e.x, e.y, 0) : drawSimulationLine(d.x, d.y, e.x, e.y, a << 16 | c << 8 | b))
 }
 var qd = p,
     mf = p + 4E4,
@@ -4493,16 +4493,16 @@ function Uf() {
     14 == backgroundDrawType && (F = u = t = 0, M = 13421772);
     for (b = a = 0; a < counterStickman; a++, b += hd) {
         if (z[a] <= ld + 3) {
-            if (z[a] != jd + 3 && z[a] != ld + 3) lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), lf(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), lf(stickManBodyPoints[b +
+            if (z[a] != jd + 3 && z[a] != ld + 3) drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), drawSimulationLine(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), drawSimulationLine(stickManBodyPoints[b +
                 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), e = z[a] <= jd + 3 ? f : g;
             else {
-                lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
                 if (140 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
                 if (135 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
                 if (130 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
                 if (125 < ze[a]) continue;
                 e = z[a] <= jd + 3 ? m : n
             }
@@ -4521,22 +4521,22 @@ function Uf() {
             if (12 == backgroundDrawType)
                 for (c = floor(minInsideRange(stickManBodyPoints[b + 0].x, 8, 503)), $ = floor(minInsideRange(stickManBodyPoints[b + 0].y, 8, 283)), e = $ - 4; e <= $ + 4; e += 4)
                     for (d = c - 4; d <= c + 4; d += 4) Eb[(e << 9) + d] = 536870911
-        } else if (z[a] <= md + 2) lf(stickManBodyPoints[b + 0].x, stickManBodyPoints[b + 0].y, stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, t), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), lf(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 3, 3, t);
+        } else if (z[a] <= md + 2) drawSimulationLine(stickManBodyPoints[b + 0].x, stickManBodyPoints[b + 0].y, stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, t), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), drawSimulationLine(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 3, 3, t);
         else if (z[a] <= md + 3) {
-            lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y,
+            drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y,
                 u);
             if (145 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
             if (140 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
             if (135 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
             if (130 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
             if (125 < ze[a]) continue;
             oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 2, 2, t)
-        } else z[a] <= nd && (d = 9465872, 14 == backgroundDrawType && (d = 0), ye[b] == jd ? (lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, stickManBodyPoints[b].x +
-            3, stickManBodyPoints[b].y + 2, d)) : ye[b] == md ? (lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d)) : ye[b] == Lb ? (lf(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y + 3, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 3, d)) : oe(stickManBodyPoints[b].x, stickManBodyPoints[b].y, 4, 4, d));
+        } else z[a] <= nd && (d = 9465872, 14 == backgroundDrawType && (d = 0), ye[b] == jd ? (drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, stickManBodyPoints[b].x +
+            3, stickManBodyPoints[b].y + 2, d)) : ye[b] == md ? (drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d)) : ye[b] == Lb ? (drawSimulationLine(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y + 3, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 3, d)) : oe(stickManBodyPoints[b].x, stickManBodyPoints[b].y, 4, 4, d));
         if (z[a] <= md + 3 && 13 == backgroundDrawType)
             for (c = 0; 6 > c; c++) d = floor(minInsideRange(stickManBodyPoints[b + c].x, 8, 503)), e = floor(minInsideRange(stickManBodyPoints[b + c].y, 8, 287)), Eb[(e << 9) + d] = 3E3
     }
@@ -5166,7 +5166,7 @@ function drawCompositeTextUsingImage(a, c, b, d, e, f) {
 }
 var bi = 0;
 
-function lf(a, c, b, d, e) {
+function drawSimulationLine(a, c, b, d, e) {
     var f = ~~b - ~~a,
         g = ~~d - ~~c,
         m = max(max(abs(f), abs(g)), 1),
@@ -5181,10 +5181,10 @@ function vf(a, c, b, d) {
     var e = 18;
     b--;
     e--;
-    lf(a, c, a + b, c, d);
-    lf(a, c + e, a + b, c + e, d);
-    lf(a, c, a, c + e, d);
-    lf(a + b, c, a + b, c + e, d)
+    drawSimulationLine(a, c, a + b, c, d);
+    drawSimulationLine(a, c + e, a + b, c + e, d);
+    drawSimulationLine(a, c, a, c + e, d);
+    drawSimulationLine(a + b, c, a + b, c + e, d)
 }
 
 function oe(a, c, b, d, e) {
