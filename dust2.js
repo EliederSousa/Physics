@@ -10,17 +10,17 @@ var aa = 0,
     ka = ia,
     la = ja,
     na = new Vector,
-    oa = 2,
+    penSize = 2,
     pa = 0,
     backgroundDrawType = 2,
-    ra = 0,
-    sa = 0,
-    ta = 0,
-    ua = 0,
+    scale = 0, // 1x, 2x, 4x...
+    scaleXPosition = 0,
+    scaleYPosition = 0,
+    scaleMode = 0, // (0 ~ 1 -> normal / exact)
     isStopped = 0,
-    wa = 0,
-    xa = 0,
-    ya = 0,
+    simulationSpeed = 0,  // (0 ~ 3)
+    sideLoop = 0, // (0, 1)
+    gridLines = 0, // (0 ~ 9)
     isGravityOn = true,
     Aa = 0,
     Ba = 0,
@@ -119,8 +119,7 @@ var aa = 0,
     rc = 32,
     sc = 33,
     tc = 34,
-    uc =
-    35,
+    uc = 35,
     vc = 36,
     wc = 37,
     xc = 38,
@@ -166,7 +165,7 @@ window.GameSave = gameSave;
 function gameSave(a) {
     if (0 == a.length || 0 != db) return "";
     saveGameFromScreen();
-    Yc(1);
+    createGameSaveString(1);
     for (var c = a = 0; c < eb.length; c++) a += eb.charCodeAt(c) * ((c & 15) + 1);
     return a = eb + chars[a & 63]
 }
@@ -182,7 +181,7 @@ function gameLoad(a) {
         Zc = a.substring(0, a.length - 1);
         return 0
     }
-    0 == a.length && 0 != Zc.length && (eb = Zc, Zc = "", ad(1), loadGameToScreen());
+    0 == a.length && 0 != Zc.length && (eb = Zc, Zc = "", loadAndDecodeGameSaveString(1), loadGameToScreen());
     return -1
 }
 var cd = 0,
@@ -190,16 +189,16 @@ var cd = 0,
 
 function ed(a) {
     var c, b;
-    0 > oa && 9 < oa && (v = null);
+    0 > penSize && 9 < penSize && (v = null);
     0 == a ? b = dd : dd = b = customRandom(1024);
     b += (ea | 1) * (b & 15 | 1);
     b += (fa | 1) * (b & 15 | 1);
-    b += (oa | 1) * (b & 15 | 1);
+    b += (penSize | 1) * (b & 15 | 1);
     b += (backgroundDrawType | 1) * (b & 15 | 1);
-    b += (ra | 1) * (b & 15 | 1);
+    b += (scale | 1) * (b & 15 | 1);
     b += (isStopped | 1) * (b & 15 | 1);
-    b += (wa | 1) * (b & 15 | 1);
-    b += (xa | 1) * (b & 15 | 1);
+    b += (simulationSpeed | 1) * (b & 15 | 1);
+    b += (sideLoop | 1) * (b & 15 | 1);
     b += (Aa | 1) * (b & 15 | 1);
     b += (Xa | 1) * (b & 15 | 1);
     b += (Ya | 1) * (b & 15 | 1);
@@ -235,7 +234,7 @@ function saveGameFromScreen() {
     ob = nb
 }
 
-function Yc(a) {
+function createGameSaveString(a) {
     var c, b;
     if (0 == a) {
         var d = new Uint8Array(8680),
@@ -276,18 +275,22 @@ function Yc(a) {
     b = 0;
     arrayOfTypesOfElementInThisPosition[b++] = 0;
     arrayOfTypesOfElementInThisPosition[b++] = 0;
-    for (c = arrayOfTypesOfElementInThisPosition[b++] = 0; 8 > c; c++) arrayOfTypesOfElementInThisPosition[b++] = bb[c];
+    for (c = arrayOfTypesOfElementInThisPosition[b++] = 0; 8 > c; c++) {
+        arrayOfTypesOfElementInThisPosition[b++] = bb[c];
+    }
     arrayOfTypesOfElementInThisPosition[b++] = ob & 255;
     arrayOfTypesOfElementInThisPosition[b++] = ob >> 8;
     arrayOfTypesOfElementInThisPosition[b++] = Nc[ea];
     arrayOfTypesOfElementInThisPosition[b++] = Nc[fa];
-    arrayOfTypesOfElementInThisPosition[b++] = oa;
+    arrayOfTypesOfElementInThisPosition[b++] = penSize;
     arrayOfTypesOfElementInThisPosition[b++] = backgroundDrawType;
-    arrayOfTypesOfElementInThisPosition[b++] = wa;
-    arrayOfTypesOfElementInThisPosition[b++] = xa;
+    arrayOfTypesOfElementInThisPosition[b++] = simulationSpeed;
+    arrayOfTypesOfElementInThisPosition[b++] = sideLoop;
     arrayOfTypesOfElementInThisPosition[b++] = isGravityOn ? 0 : 1;
-    arrayOfTypesOfElementInThisPosition[b++] = ya;
-    for (c = 0; 8 > c; c++) arrayOfTypesOfElementInThisPosition[b++] = 0;
+    arrayOfTypesOfElementInThisPosition[b++] = gridLines;
+    for (c = 0; 8 > c; c++) {
+        arrayOfTypesOfElementInThisPosition[b++] = 0;
+    }
     if (0 == a)
         for (pb = 0, c = Ya; c < Ya + 138880; c++) 0 < arrayOfTypesOfElementInThisPosition[c] && (pb += c & 255);
     b = 0;
@@ -331,7 +334,7 @@ function Yc(a) {
     eb = window.btoa(eb)
 }
 
-function ad(a) {
+function loadAndDecodeGameSaveString(a) {
     var c, b = window.atob(eb),
         d = [];
     fb = b.length;
@@ -382,12 +385,12 @@ function ad(a) {
             if (0 != arrayOfTypesOfElementInThisPosition[a])
                 for (c = 0; c < Nc.length; c++) arrayOfTypesOfElementInThisPosition[a] == Nc[c] && (fa = c);
             a++;
-            oa = arrayOfTypesOfElementInThisPosition[a++];
+            penSize = arrayOfTypesOfElementInThisPosition[a++];
             backgroundDrawType = arrayOfTypesOfElementInThisPosition[a++];
-            wa = arrayOfTypesOfElementInThisPosition[a++];
-            xa = arrayOfTypesOfElementInThisPosition[a++];
+            simulationSpeed = arrayOfTypesOfElementInThisPosition[a++];
+            sideLoop = arrayOfTypesOfElementInThisPosition[a++];
             isGravityOn = 0 == arrayOfTypesOfElementInThisPosition[a++] ? true : false;
-            ya = arrayOfTypesOfElementInThisPosition[a++]
+            gridLines = arrayOfTypesOfElementInThisPosition[a++]
         }
     }
 }
@@ -697,7 +700,7 @@ function startScript(a, c, b, d) {
         }
         reset(0);
         saveGameFromScreen();
-        0 < db && (b = "/score/dust2.php?a=", b += db, AjaxRequest(b, ""), 1 == me && "ok" == ne[0] ? (eb = ne[1], ad(0), 0 < Za ? (loadGameToScreen(), lb = 1) : lb = 2) : lb = 2, isStopped = 1);
+        0 < db && (b = "/score/dust2.php?a=", b += db, AjaxRequest(b, ""), 1 == me && "ok" == ne[0] ? (eb = ne[1], loadAndDecodeGameSaveString(0), 0 < Za ? (loadGameToScreen(), lb = 1) : lb = 2) : lb = 2, isStopped = 1);
         ed(1);
         for (a = 0; a < s.length; a++) b = floor((2989 * (s[a] >> 16 & 255) + 5866 * (s[a] >> 8 & 255) + 1145 * (s[a] & 255)) / 1E4), Rc[a] = b << 16 | b << 8 | b;
         oe(0, 0, screenWidth, screenHeight, 4210752);
@@ -831,105 +834,375 @@ function reset(a) {
 
 
 function Ge() {
-    if (0 < He) He++;
-    else {
+    if (0 < He) {
+        He++;
+    } else {
         d = new Vector;
         ed(0);
         gameSave("");
         gameLoad("");
-        280 <= Ie && (Je || Ke) && false == ga ? ga = true : 280 > Ie && (Je || Ke) && true == ga && (ga = false);
-        
-        Je && 0 == Xa && (Qd[48] ? oa = 0 : Qd[49] ? oa = 1 : Qd[50] ? oa = 2 : Qd[51] ? oa = 3 : Qd[52] ? oa = 4 : Qd[53] ? oa = 5 : Qd[54] ? oa = 6 : Qd[55] ? oa = 7 : Qd[56] ? oa = 8 : Qd[57] ? oa = 9 : Qd[32] ? isStopped = returnBetween0_MAX(isStopped + 1, 1) : Qd[10] || Qd[13] ? isStopped = 1 : Qd[108] ? (loadGameToScreen(), pa = -10) : Qd[106] && (Va = returnBetween0_MAX(Va + 1, 3)));
+        if (280 <= Ie && (Je || Ke) && false == ga) {
+            ga = true;
+        } else {
+            if (280 > Ie && (Je || Ke) && true == ga) {
+                ga = false;
+            }
+        }
+        if (Je && 0 == Xa) {
+            if (Qd[48]) {
+                penSize = 0;
+            } else {
+                if (Qd[49]) {
+                    penSize = 1;
+                } else {
+                    if (Qd[50]) {
+                        penSize = 2;
+                    } else {
+                        if (Qd[51]) {
+                            penSize = 3;
+                        } else {
+                            if (Qd[52]) {
+                                penSize = 4;
+                            } else {
+                                if (Qd[53]) {
+                                    penSize = 5;
+                                } else {
+                                    if (Qd[54]) {
+                                        penSize = 6;
+                                    } else {
+                                        if (Qd[55]) {
+                                            penSize = 7;
+                                        } else {
+                                            if (Qd[56]) {
+                                                penSize = 8;
+                                            } else {
+                                                if (Qd[57]) {
+                                                    penSize = 9;
+                                                } else {
+                                                    if (Qd[32]) {
+                                                        isStopped = returnBetween0_MAX(isStopped + 1, 1);
+                                                    } else {
+                                                        if (Qd[10] || Qd[13]) {
+                                                            isStopped = 1;
+                                                        } else {
+                                                            if (Qd[108]) {
+                                                                loadGameToScreen();
+                                                                pa = -10;
+                                                            } else {
+                                                                if (Qd[106]) {
+                                                                    Va = returnBetween0_MAX(Va + 1, 3);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         f = 13;
         g = 291;
-        if (Me(f - 4 - 8, g - 1 - 8, 495, 126) && ga && 0 == Xa)
-            if (e = floor((Ne - (f - 4 - 8)) / 55), c = floor((Ie - (g - 1 - 8)) / 14), c = 9 * e + c, 5 == c) {
-                if( Ke ) {
-                    if( 5 == ea ) {
+        if (Me(f - 4 - 8, g - 1 - 8, 495, 126) && ga && 0 == Xa) {
+            if (e = floor((Ne - (f - 4 - 8)) / 55), c = floor((Ie - (g - 1 - 8)) / 14), c = 9 * e + c, console.log(c), 5 == c) {
+                if (Ke) {
+                    if (5 == ea) {
                         Fa = returnBetween0_MAX(Fa + 8, 56);
-                        ea = c; 
+                        ea = c;
                     } else {
-                        if ( Oe ) {
-                            if( 5 == fa ) {
+                        if (Oe) {
+                            if (5 == fa) {
                                 Fa = returnBetween0_MAX(Fa - 8, 56);
                                 fa = c;
                             }
                         }
                     }
                 }
-                
-            } else if (40 != c && 41 != c && 42 != c && 43 != c && 44 != c && 48 != c)
-            if (53 == c) Ke ? (53 == ea && (Ta = returnBetween0_MAX(Ta + 1, 5)), ea = c) : Oe && (53 == fa && (Ta = returnBetween0_MAX(Ta - 1, 5)), fa = c);
-            else if (59 != c && 60 != c && 61 != c)
-            if (62 == c) isMinimapActive = returnBetween0_MAX(isMinimapActive + Pe, 1);
-            else if (63 != c)
-            if (65 == c) Ke && (65 == ea && (Ga = 1 - Ga), ea = c), Oe && (65 == fa && (Ga = 1 - Ga), fa = c);
-            else if (66 == c) Aa = returnBetween0_MAX(Aa + Pe, 3);
-        else if (67 == c) oa = returnBetween0_MAX(oa + Pe, 9);
-        else if (68 == c) {
-            if (0 == ra && (Ke || Oe))
-                for (b = 288 * screenWidth - 1; 4096 <= b; b--) imageHandlerForScreen.a[b] = v[b];
-            Ke ? (68 == ea && 4 > ra ? (ra++, sa += 496 >> ra >> 1, ta += 280 >> ra >> 1) : 68 == ea && (ra = 0),
-                ea = c) : Oe && (68 == fa && 0 < ra ? (sa -= 496 >> ra >> 1, ta -= 280 >> ra >> 1, ra--) : 68 == fa && (ra = 4, sa += 248 - (496 >> ra >> 1) - 1, ta += 140 - (280 >> ra >> 1) - 2), fa = c);
-            sa = minInsideRange(sa, 0, 496 - (496 >> ra));
-            ta = minInsideRange(ta, 0, 280 - [280, 140, 70, 35, 18][ra]);
-            if (0 == ra && (Ke || Oe))
-                for (b = 288 * screenWidth - 1; 4096 <= b; b--) v[b] = imageHandlerForScreen.a[b]
-        } else if (69 == c) ua = returnBetween0_MAX(ua + Pe, 1);
-        else if (70 == c) wa = returnBetween0_MAX(wa + Pe, 3);
-        else if (71 == c) isStopped = returnBetween0_MAX(isStopped + Pe, 1);
-        else if (72 == c) 0 != Pe && (Xa = 1);
-        else if (73 == c) {
-            if (Ke || Oe) saveGameFromScreen(), pa = 10
-        } else if (74 == c) 0 != Pe && (loadGameToScreen(), pa = -10);
-        else if (75 != c)
-            if (76 == c) {
-                // Manipula o click no botão de ligar e desligar a gravidade
-                if (0 != Pe) {
-                    isGravityOn = isGravityOn ? false : true;
-                    for (b = 288 * screenWidth - 1; 4096 <= b; b--) Re[b] += isGravityOn ? 1 : -1;
-                    Se = 1;
-                    setGravity()
+            } else {
+                if (40 != c && 41 != c && 42 != c && 43 != c && 44 != c && 48 != c) {
+                    if (53 == c) {
+                        if (Ke) {
+                            if (53 == ea) {
+                                Ta = returnBetween0_MAX(Ta + 1, 5);
+                            }
+                            ea = c;
+                        } else {
+                            if (Oe) {
+                                if (53 == fa) {
+                                    Ta = returnBetween0_MAX(Ta - 1, 5);
+                                }
+                                fa = c;
+                            }
+                        }
+                    } else {
+                        if (59 != c && 60 != c && 61 != c) {
+                            if (62 == c) {
+                                isMinimapActive = returnBetween0_MAX(isMinimapActive + Pe, 1);
+                            } else {
+                                if (63 != c) {
+                                    if (65 == c) {
+                                        if (Ke) {
+                                            if (65 == ea) {
+                                                Ga = 1 - Ga;
+                                            }
+                                            ea = c;
+                                        }
+                                        if (Oe) {
+                                            if (65 == fa) {
+                                                Ga = 1 - Ga;
+                                            }
+                                            fa = c;
+                                        }
+                                    } else {
+                                        if (66 == c) {
+                                            Aa = returnBetween0_MAX(Aa + Pe, 3);
+                                        } else {
+                                            if (67 == c) {
+                                                penSize = returnBetween0_MAX(penSize + Pe, 9);
+                                            } else {
+                                                if (68 == c) {
+                                                    if (0 == scale && (Ke || Oe)) {
+                                                        b = 288 * screenWidth - 1;
+                                                        for (; 4096 <= b; b--) {
+                                                            imageHandlerForScreen.a[b] = v[b];
+                                                        }
+                                                    }
+                                                    if (Ke) {
+                                                        if (68 == ea && 4 > scale) {
+                                                            scale++;
+                                                            scaleXPosition = scaleXPosition + (496 >> scale >> 1);
+                                                            scaleYPosition = scaleYPosition + (280 >> scale >> 1);
+                                                        } else {
+                                                            if (68 == ea) {
+                                                                scale = 0;
+                                                            }
+                                                        }
+                                                        ea = c;
+                                                    } else {
+                                                        if (Oe) {
+                                                            if (68 == fa && 0 < scale) {
+                                                                scaleXPosition = scaleXPosition - (496 >> scale >> 1);
+                                                                scaleYPosition = scaleYPosition - (280 >> scale >> 1);
+                                                                scale--;
+                                                            } else {
+                                                                if (68 == fa) {
+                                                                    scale = 4;
+                                                                    scaleXPosition = scaleXPosition + (248 - (496 >> scale >> 1) - 1);
+                                                                    scaleYPosition = scaleYPosition + (140 - (280 >> scale >> 1) - 2);
+                                                                }
+                                                            }
+                                                            fa = c;
+                                                        }
+                                                    }
+                                                    scaleXPosition = minInsideRange(scaleXPosition, 0, 496 - (496 >> scale));
+                                                    scaleYPosition = minInsideRange(scaleYPosition, 0, 280 - [280, 140, 70, 35, 18][scale]);
+                                                    if (0 == scale && (Ke || Oe)) {
+                                                        b = 288 * screenWidth - 1;
+                                                        for (; 4096 <= b; b--) {
+                                                            v[b] = imageHandlerForScreen.a[b];
+                                                        }
+                                                    }
+                                                } else {
+                                                    if (69 == c) {
+                                                        scaleMode = returnBetween0_MAX(scaleMode + Pe, 1);
+                                                    } else {
+                                                        if (70 == c) {
+                                                            simulationSpeed = returnBetween0_MAX(simulationSpeed + Pe, 3);
+                                                        } else {
+                                                            if (71 == c) {
+                                                                isStopped = returnBetween0_MAX(isStopped + Pe, 1);
+                                                            } else {
+                                                                if (72 == c) {
+                                                                    if (0 != Pe) {
+                                                                        Xa = 1;
+                                                                    }
+                                                                } else {
+                                                                    if (73 == c) {
+                                                                        if (Ke || Oe) {
+                                                                            saveGameFromScreen();
+                                                                            pa = 10;
+                                                                        }
+                                                                    } else {
+                                                                        if (74 == c) {
+                                                                            if (0 != Pe) {
+                                                                                loadGameToScreen();
+                                                                                pa = -10;
+                                                                            }
+                                                                        } else {
+                                                                            if (75 != c) {
+                                                                                if (76 == c) {
+                                                                                    if (0 != Pe) {
+                                                                                        isGravityOn = isGravityOn ? false : true;
+                                                                                        b = 288 * screenWidth - 1;
+                                                                                        for (; 4096 <= b; b--) {
+                                                                                            Re[b] += isGravityOn ? 1 : -1;
+                                                                                        }
+                                                                                        Se = 1;
+                                                                                        setGravity();
+                                                                                    }
+                                                                                } else {
+                                                                                    if (77 == c) {
+                                                                                        if (sideLoop = returnBetween0_MAX(sideLoop + Pe, 1), 0 != Pe) {
+                                                                                            if (0 == sideLoop) {
+                                                                                                a = 2;
+                                                                                                for (; a < Ee; a++) {
+                                                                                                    P[128 + a] = 0;
+                                                                                                    P[9216 + a] = 0;
+                                                                                                    Q[128 + a] = 0;
+                                                                                                    Q[9216 + a] = 0;
+                                                                                                    se[128 + a] = 0;
+                                                                                                    se[9216 + a] = 0;
+                                                                                                    te[128 + a] = 0;
+                                                                                                    te[9216 + a] = 0;
+                                                                                                    ue[128 + a] = 0;
+                                                                                                    ue[9216 + a] = 0;
+                                                                                                }
+                                                                                                c = 256;
+                                                                                                for (; c < Fe << 7; c = c + w) {
+                                                                                                    P[c + 1] = 0;
+                                                                                                    P[c + Ee] = 0;
+                                                                                                    Q[c + 1] = 0;
+                                                                                                    Q[c + Ee] = 0;
+                                                                                                    se[c + 1] = 0;
+                                                                                                    se[c + Ee] = 0;
+                                                                                                    te[c + 1] = 0;
+                                                                                                    te[c + Ee] = 0;
+                                                                                                    ue[c + 1] = 0;
+                                                                                                    ue[c + Ee] = 0;
+                                                                                                }
+                                                                                            } else {
+                                                                                                if (1 == sideLoop) {
+                                                                                                    a = 2;
+                                                                                                    for (; a < Ee; a++) {
+                                                                                                        P[128 + a] = P[9088 + a];
+                                                                                                        P[9216 + a] = P[256 + a];
+                                                                                                        Q[128 + a] = Q[9088 + a];
+                                                                                                        Q[9216 + a] = Q[256 + a];
+                                                                                                        se[128 + a] = se[9088 + a];
+                                                                                                        se[9216 + a] = se[256 + a];
+                                                                                                        te[128 + a] = te[9088 + a];
+                                                                                                        te[9216 + a] = te[256 + a];
+                                                                                                        ue[128 + a] = ue[9088 + a];
+                                                                                                        ue[9216 + a] = ue[256 + a];
+                                                                                                    }
+                                                                                                    c = 256;
+                                                                                                    for (; c < Fe << 7; c = c + w) {
+                                                                                                        P[c + 1] = P[c + Ee - 1];
+                                                                                                        P[c + Ee] = P[c + 2];
+                                                                                                        Q[c + 1] = Q[c + Ee - 1];
+                                                                                                        Q[c + Ee] = Q[c + 2];
+                                                                                                        se[c + 1] = se[c + Ee - 1];
+                                                                                                        se[c + Ee] = se[c + 2];
+                                                                                                        te[c + 1] = te[c + Ee - 1];
+                                                                                                        te[c + Ee] = te[c + 2];
+                                                                                                        ue[c + 1] = ue[c + Ee - 1];
+                                                                                                        ue[c + Ee] = ue[c + 2];
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    } else {
+                                                                                        if (78 == c) {
+                                                                                            if (backgroundDrawType = returnBetween0_MAX(backgroundDrawType + Pe, 16), 0 != Pe) {
+                                                                                                a = 0;
+                                                                                                for (; a < Eb.length; a++) {
+                                                                                                    Eb[a] = 0;
+                                                                                                }
+                                                                                            }
+                                                                                        } else {
+                                                                                            if (79 == c) {
+                                                                                                gridLines = returnBetween0_MAX(gridLines + Pe, 9);
+                                                                                            } else {
+                                                                                                if (80 == c) {
+                                                                                                    if (0 != Pe) {
+                                                                                                        reset(0);
+                                                                                                    }
+                                                                                                } else {
+                                                                                                    if (Ke) {
+                                                                                                        ea = c;
+                                                                                                    } else {
+                                                                                                        if (Oe) {
+                                                                                                            fa = c;
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            } else if (77 == c) {
-            if (xa = returnBetween0_MAX(xa + Pe, 1), 0 != Pe)
-                if (0 == xa) {
-                    for (a = 2; a < Ee; a++) P[128 + a] = 0, P[9216 + a] = 0, Q[128 + a] = 0, Q[9216 + a] = 0, se[128 + a] = 0, se[9216 + a] = 0, te[128 + a] = 0, te[9216 + a] = 0, ue[128 + a] = 0, ue[9216 + a] = 0;
-                    for (c = 256; c < Fe << 7; c += w) P[c + 1] = 0, P[c + Ee] = 0, Q[c + 1] = 0, Q[c + Ee] = 0, se[c + 1] = 0, se[c + Ee] = 0, te[c + 1] = 0, te[c + Ee] = 0, ue[c + 1] = 0, ue[c + Ee] = 0
-                } else if (1 == xa) {
-                for (a = 2; a < Ee; a++) P[128 + a] = P[9088 + a], P[9216 + a] = P[256 + a], Q[128 + a] = Q[9088 + a], Q[9216 + a] = Q[256 + a], se[128 + a] = se[9088 + a], se[9216 + a] = se[256 + a], te[128 + a] =
-                    te[9088 + a], te[9216 + a] = te[256 + a], ue[128 + a] = ue[9088 + a], ue[9216 + a] = ue[256 + a];
-                for (c = 256; c < Fe << 7; c += w) P[c + 1] = P[c + Ee - 1], P[c + Ee] = P[c + 2], Q[c + 1] = Q[c + Ee - 1], Q[c + Ee] = Q[c + 2], se[c + 1] = se[c + Ee - 1], se[c + Ee] = se[c + 2], te[c + 1] = te[c + Ee - 1], te[c + Ee] = te[c + 2], ue[c + 1] = ue[c + Ee - 1], ue[c + Ee] = ue[c + 2]
             }
-        } else if (78 == c) {
-            if (backgroundDrawType = returnBetween0_MAX(backgroundDrawType + Pe, 16), 0 != Pe)
-                for (a = 0; a < Eb.length; a++) Eb[a] = 0
-        } else if(79 == c) {
-            ya = returnBetween0_MAX(ya + Pe, 9)
-        } else if (80 == c) {
-            if(0 != Pe) reset(0)
-        } else if(Ke) {
-            ea = c
-        } else { 
-            Oe && (fa = c);
         }
         if (!ga && 0 == Xa) {
             ka = ia;
             la = ja;
             ia = minInsideRange(Ne + 2 * ha, 2 * ha, ha * (w - 2) - 1);
             ja = minInsideRange(Ie + 2 * ha, 2 * ha, ha * (re - 2) - 1);
-            0 < ra &&
-                (ia = 2 * ha + floor(sa) + (Ne >> ra), ja = 2 * ha + floor(ta) + (Ie >> ra), ia = minInsideRange(ia, 2 * ha, ha * (w - 2) - 1), ja = minInsideRange(ja, 2 * ha, ha * (re - 2) - 1));
-            Ke && (ka = ia, la = ja);
-            if (1 == Aa)
-                if (Ke || Oe) Da = ia, Ea = ja;
-                else {
-                    if (trueAfterMouseUpButOnlyForOneTick || Ve) ka = Da, la = Ea
+            if (0 < scale) {
+                ia = 2 * ha + floor(scaleXPosition) + (Ne >> scale);
+                ja = 2 * ha + floor(scaleYPosition) + (Ie >> scale);
+                ia = minInsideRange(ia, 2 * ha, ha * (w - 2) - 1);
+                ja = minInsideRange(ja, 2 * ha, ha * (re - 2) - 1);
+            }
+            if (Ke) {
+                ka = ia;
+                la = ja;
+            }
+            if (1 == Aa) {
+                if (Ke || Oe) {
+                    Da = ia;
+                    Ea = ja;
+                } else {
+                    if (trueAfterMouseUpButOnlyForOneTick || Ve) {
+                        ka = Da;
+                        la = Ea;
+                    }
                 }
-            else if (2 == Aa && (We || Xe)) {
-                if (Ke || Oe) Ba = 0;
-                0 == Ba && (abs(ia - ka) > abs(ja - la) ? Ba = 1 : abs(ia - ka) < abs(ja - la) ? Ba = 2 : (ia = ka, ja = la));
-                1 == Ba ? ja = la : 2 == Ba && (ia = ka)
+            } else {
+                if (2 == Aa && (We || Xe)) {
+                    if (Ke || Oe) {
+                        Ba = 0;
+                    }
+                    if (0 == Ba) {
+                        if (abs(ia - ka) > abs(ja - la)) {
+                            Ba = 1;
+                        } else {
+                            if (abs(ia - ka) < abs(ja - la)) {
+                                Ba = 2;
+                            } else {
+                                ia = ka;
+                                ja = la;
+                            }
+                        }
+                    }
+                    if (1 == Ba) {
+                        ja = la;
+                    } else {
+                        if (2 == Ba) {
+                            ia = ka;
+                        }
+                    }
+                }
             }
             setToVector(d, ia, ja);
             setToVector(na, ka - 5 * na.x, la - 5 * na.y);
@@ -937,9 +1210,9 @@ function Ge() {
             e = 5;
             b = a = 0.5;
             vectorSub($e, d, c);
-            e -= normalize($e);
-            a *= e;
-            b *= e;
+            e = e - normalize($e);
+            a = a * e;
+            b = b * e;
             d.x += $e.x * a;
             d.y += $e.y * a;
             c.x -= $e.x * b;
@@ -948,207 +1221,593 @@ function Ge() {
             normalize(na);
             bf(0);
             bf(1);
-            if (Ke || Oe) nb = minInsideRange(nb + 1,
-                0, 65535)
+            if (Ke || Oe) {
+                nb = minInsideRange(nb + 1, 0, 65535);
+            }
         }
-        
         ed(1);
-        c = [1, 2, 4, 8];
-        for (d = 0; d < c[wa] && (1 != isStopped || Je && 0 == Xa && Qd[10] | Qd[13]); d++) cf++, df(), ef(), ff(), processStickman(), hf();
-        if (0 != ra && 0 != ua)
-            for (b = 288 * screenWidth - 1; 4096 <= b; b--) v[b] = imageHandlerForScreen.a[b];
+        interations = [1, 2, 4, 8];
+        // Simulates the physics 'simulationSpeed' times
+        for (d = 0; d < interations[simulationSpeed] && (isStopped != 1 || Je && 0 == Xa && Qd[10] | Qd[13]); d++) {
+            cf++;
+            createFluidForces(); // createFluidForces();
+            moveParticles();
+            ff();
+            processStickman();
+            hf();
+        }
+        if (0 != scale && 0 != scaleMode) {
+            b = 288 * screenWidth - 1;
+            for (; 4096 <= b; b--) {
+                v[b] = imageHandlerForScreen.a[b];
+            }
+        }
         handlesDrawingMethods();
-        if (0 != ra) {
-            for (b = 288 * screenWidth - 1; 4096 <= b; b--) imageHandlerForScreen.a[b] = v[b];
-            e = 8 + floor(sa);
-            c = 8 + floor(ta);
-            3 >= ra ? kf(8, 280, e, c, 280 >> ra) : 4 == ra && (kf(8, 272, e, c, 17), kf(280, 8, e, c + 17, 1))
+        if (0 != scale) {
+            b = 288 * screenWidth - 1;
+            for (; 4096 <= b; b--) {
+                imageHandlerForScreen.a[b] = v[b];
+            }
+            e = 8 + floor(scaleXPosition);
+            c = 8 + floor(scaleYPosition);
+            if (3 >= scale) {
+                kf(8, 280, e, c, 280 >> scale);
+            } else {
+                if (4 == scale) {
+                    kf(8, 272, e, c, 17);
+                    kf(280, 8, e, c + 17, 1);
+                }
+            }
         }
         d = screenWidth * screenHeight;
-        for (b = 288 * screenWidth; b < d; b++) v[b] = imageHandlerForScreen.a[b];
-        if (Me(f - 4 - 8, g - 1 - 8, 495, 126) && ga && 0 == Xa)
-            for (e = floor((Ne - (f - 4 - 8)) / 55), c = floor((Ie - (g - 1 - 8)) / 14), d = f - 4 + 55 * e, a = g - 1 + 14 * c, c = 55, e = 13, c = d + c > screenWidth ? screenWidth : ~~(d + c), e = a + e > screenHeight ? screenHeight : ~~(a +
-                    e), d = 0 > d ? 0 : ~~d, a = (0 > a ? 0 : ~~a) * screenWidth + d, b = screenWidth - (c - d), c = a + c - d, e *= screenWidth; a < e; a += b, c += screenWidth)
-                for (; a < c; a++) 4210752 == (v[a] & 16777215) && (v[a] = 4194304);
-        ga && lf(8, 288, 504, 288, 6684672);
+        b = 288 * screenWidth;
+        for (; b < d; b++) {
+            v[b] = imageHandlerForScreen.a[b];
+        }
+        if (Me(f - 4 - 8, g - 1 - 8, 495, 126) && ga && 0 == Xa) {
+            e = floor((Ne - (f - 4 - 8)) / 55);
+            c = floor((Ie - (g - 1 - 8)) / 14);
+            d = f - 4 + 55 * e;
+            a = g - 1 + 14 * c;
+            c = 55;
+            e = 13;
+            c = d + c > screenWidth ? screenWidth : ~~(d + c);
+            e = a + e > screenHeight ? screenHeight : ~~(a + e);
+            d = 0 > d ? 0 : ~~d;
+            a = (0 > a ? 0 : ~~a) * screenWidth + d;
+            b = screenWidth - (c - d);
+            c = a + c - d;
+            e = e * screenWidth;
+            for (; a < e; a = a + b, c = c + screenWidth) {
+                for (; a < c; a++) {
+                    if (4210752 == (v[a] & 16777215)) {
+                        v[a] = 4194304;
+                    }
+                }
+            }
+        }
+        if (ga) {
+            drawSimulationLine(8, 288, 504, 288, 6684672);
+        }
         drawCompositeTextUsingImage(f + 0 - 2, g + 70, "    " + floor(360 * Fa / 64) + "'", 8421631, 0, -1);
         drawCompositeTextUsingImage(f + 275, g + 112, "JOINT-n J-left J-right J-scale J-none J-blind".split(" ")[Ta], 15908203, 0, -1);
-        1 == isMinimapActive && drawCompositeTextUsingImage(f + 330, g + 112, "MiniMap", 16777215, 16711680, -1);
-        0 == Ga ? drawCompositeTextUsingImage(f + 385 - 1, g + 28, "Copy", 16728128, -1, -2) : drawCompositeTextUsingImage(f + 385 + 23, g + 28, "Paste", 16728128, -1, -3);
-        
+        if (1 == isMinimapActive) {
+            drawCompositeTextUsingImage(f + 330, g + 112, "MiniMap", 16777215, 16711680, -1);
+        }
+        if (0 == Ga) {
+            drawCompositeTextUsingImage(f + 385 - 1, g + 28, "Copy", 16728128, -1, -2);
+        } else {
+            drawCompositeTextUsingImage(f + 385 + 23, g + 28, "Paste", 16728128, -1, -3);
+        }
         pen_paint_type = ["free", "line", "lock", "paint"];
-        3 > Aa ? drawCompositeTextUsingImage(f + 385 + 1, g + 42, "   " + pen_paint_type[Aa],
-            16777215, 0, -1) : drawCompositeTextUsingImage(f + 385 + 4, g + 42, "   " + pen_paint_type[Aa], 16777215, 0, -2);
-            
-        drawCompositeTextUsingImage(f + 385, g + 56, "      " + oa, 16777215, 0, -1);
-        
-        drawCompositeTextUsingImage(f + 385, g + 70, "      " + ["x1", "x2", "x4", "x8", "16"][ra], 16777215, 0, -2);
-        
-        drawCompositeTextUsingImage(f + 385, g + 84, " " + ["normal", "exact"][ua], 16777215, 0, -1);
-        
-        drawCompositeTextUsingImage(f + 385, g + 98, "       " + (1 << wa), 16777215, 0, -2);
-        
-        if( isStopped == 0 ) {
+        if (3 > Aa) {
+            drawCompositeTextUsingImage(f + 385 + 1, g + 42, "   " + pen_paint_type[Aa], 16777215, 0, -1);
+        } else {
+            drawCompositeTextUsingImage(f + 385 + 4, g + 42, "   " + pen_paint_type[Aa], 16777215, 0, -2);
+        }
+        drawCompositeTextUsingImage(f + 385, g + 56, "      " + penSize, 16777215, 0, -1);
+        drawCompositeTextUsingImage(f + 385, g + 70, "      " + ["x1", "x2", "x4", "x8", "16"][scale], 16777215, 0, -2);
+        drawCompositeTextUsingImage(f + 385, g + 84, " " + ["normal", "exact"][scaleMode], 16777215, 0, -1);
+        drawCompositeTextUsingImage(f + 385, g + 98, "       " + (1 << simulationSpeed), 16777215, 0, -2);
+        if (isStopped == 0) {
             drawCompositeTextUsingImage(f + 385 - 1, g + 112, "Start", 16728128, -1, -3);
         } else {
             drawCompositeTextUsingImage(f + 385 + 25, g + 112, "Stop", 16728128, -1, -2);
         }
-        
         if (kb == 2) {
             drawTextUsingImage(fontImage, f + 440, g + 0, "UPLOAD", 5259328, 3158064);
         }
-        0 < pa && (pa--, 1 < pa && drawTextUsingImage(fontImage, f + 440, g + 14, "SAVE", 16777215, 16711680));
-        0 > pa && (pa++, -1 > pa && drawTextUsingImage(fontImage, f + 440, g + 28, "LOAD",
-            16777215, 16711680));
+        if (0 < pa) {
+            pa--;
+            if (1 < pa) {
+                drawTextUsingImage(fontImage, f + 440, g + 14, "SAVE", 16777215, 16711680);
+            }
+        }
+        if (0 > pa) {
+            pa++;
+            if (-1 > pa) {
+                drawTextUsingImage(fontImage, f + 440, g + 28, "LOAD", 16777215, 16711680);
+            }
+        }
         drawTextUsingImage(fontImage, f + 440, g + 56, isGravityOn ? "  on" : "  off", -1, 0);
-        
         side_off_loop = ["OFF", "LOOP"];
-        drawCompositeTextUsingImage(f + 440 + 25, g + 70, side_off_loop[xa], -1, 0, -2);
-        drawCompositeTextUsingImage(f + 440 + 25, g + 70, side_off_loop[xa], 16777215, -1, -2);
-        
+        drawCompositeTextUsingImage(f + 440 + 25, g + 70, side_off_loop[sideLoop], -1, 0, -2);
+        drawCompositeTextUsingImage(f + 440 + 25, g + 70, side_off_loop[sideLoop], 16777215, -1, -2);
         backgroundDrawTypesArray = "non air line blur g-map shade aura light toon mesh gray track dark TG silet mosaic color ".split(" ");
-        if( backgroundDrawType == 15 ) {
+        if (backgroundDrawType == 15) {
             drawCompositeTextUsingImage(f + 440 + 3, g + 84, "   " + backgroundDrawTypesArray[backgroundDrawType], -1, 0, -3);
             drawCompositeTextUsingImage(f + 440 + 3, g + 84, "   " + backgroundDrawTypesArray[backgroundDrawType], 16777215, -1, -3);
         } else {
             drawCompositeTextUsingImage(f + 440, g + 84, "   " + backgroundDrawTypesArray[backgroundDrawType], -1, 0, -2);
             drawCompositeTextUsingImage(f + 440, g + 84, "   " + backgroundDrawTypesArray[backgroundDrawType], 16777215, -1, -2);
         }
-        
-        drawTextUsingImage(fontImage, f + 440, g + 98, "     " + ya, 8388608, 0);
-        
+        drawTextUsingImage(fontImage, f + 440, g + 98, "     " + gridLines, 8388608, 0);
         oe(f - 4 + 55 * floor(ea / 9), g + 1 + ea % 9 * 14, 3, 4, 16711680);
-        
         oe(f - 4 + 55 * floor(fa / 9), g + 6 + fa % 9 * 14, 3, 4, 255);
-        
         drawTextUsingImage(fontImage, f + 56, g + 126, " " + (ia - 8), -1, 0);
-        
         drawTextUsingImage(fontImage, f + 56, g + 126, "      " + (ja - 8), -1, 0);
-        
         drawTextUsingImage(fontImage, f + 140, g + 126, "   " + (mf - qd), -1, 0);
-        
-        0 == Va ? drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 0) : 1 == Va ? drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 14540253) : 2 == Va ? drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 2236962) : 3 == Va && drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, 0, -1);
-        f += 0;
-        g += 126;
-        drawTextUsingImage(fontImage, f, g, nf + "fps" , -1, 0);
-        1 == aa && (drawTextUsingImage(fontImage, f + 48, g + 0, pf + "sl", 16777215, 0), drawTextUsingImage(fontImage, f + 96, g + 0, qf + "aps", 16777215, 0));
+        if (0 == Va) {
+            drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 0);
+        } else {
+            if (1 == Va) {
+                drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 14540253);
+            } else {
+                if (2 == Va) {
+                    drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, -1, 2236962);
+                } else {
+                    if (3 == Va) {
+                        drawTextUsingImage(fontImage, f + 217, g + 126, " " + sd, 0, -1);
+                    }
+                }
+            }
+        }
+        f = f + 0;
+        g = g + 126;
+        drawTextUsingImage(fontImage, f, g, nf + "fps", -1, 0);
+        if (1 == aa) {
+            drawTextUsingImage(fontImage, f + 48, g + 0, pf + "sl", 16777215, 0);
+            drawTextUsingImage(fontImage, f + 96, g + 0, qf + "aps", 16777215, 0);
+        }
         if (1 == isMinimapActive) {
             f = 13;
             g = 291;
-            166 > Ne && ga && (f = 178);
+            if (166 > Ne && ga) {
+                f = 178;
+            }
             oe(f, g, 124, 70, 0);
-            for (b = a = 0; a < counterStickman; a++, b += hd) e = floor(stickManBodyPoints[b + 4].x) -
-                8, c = floor(stickManBodyPoints[b + 4].y) - 8, 0 > e || 496 <= e || 0 > c || 280 <= c || (e >>= 2, c >>= 2, d = 512 * (g + c) + (f + e), z[a] == jd ? v[d] = Ec : z[a] == ld ? v[d] = Fc : z[a] == md ? v[d] = fighterId : z[a] == md + 1 ? v[d] = fighterId : z[a] == nd && (v[d] = cloneId));
-            for (a = 0; a < od; a++) 0 != A[a] && (e = floor(B[a].x) - 8, c = floor(B[a].y) - 8, 0 > e || 496 <= e || 0 > c || 280 <= c || (e >>= 2, c >>= 2, d = 512 * (g + c) + (f + e), v[d] = Hc));
-            for (c = 0; 70 > c; c++)
-                for (e = 0; 124 > e; e++) b = (c + 2) * w + (e + 2), d = 2048 * (c + 2) + 4 * (e + 2), a = v[512 * (g + c) + (f + e)], 0 == a && (x[b] == Gb ? a = Ob : x[b] == Hb ? a = Qb : x[b] == Ib ? a = Rb : (a = D[I[d]], a == Hc && (a = 0), 0 == a && (a = D[I[d + 512 + 1]]), a == Hc && (a = 0))), d = s, 10 ==
-                    backgroundDrawType ? d = Rc : 12 == backgroundDrawType ? a != r && a != gc && a != lc && a != oc && a != rc && a != Ac && (a = 0) : 14 == backgroundDrawType && (a = 0 == a ? Xb : 0), v[512 * (g + c) + (f + e)] = d[a], 16 == backgroundDrawType && 0 == a && (d = (s[Nc[ea]] & 255) + (s[Nc[fa]] & 255) >> 1, v[512 * (g + c) + (f + e)] = (s[Nc[ea]] >> 16 & 255) + (s[Nc[fa]] >> 16 & 255) >> 1 << 16 | (s[Nc[ea]] >> 8 & 255) + (s[Nc[fa]] >> 8 & 255) >> 1 << 8 | d)
+            b = a = 0;
+            for (; a < counterStickman; a++, b = b + hd) {
+                e = floor(stickManBodyPoints[b + 4].x) - 8;
+                c = floor(stickManBodyPoints[b + 4].y) - 8;
+                if (!(0 > e || 496 <= e || 0 > c || 280 <= c)) {
+                    e = e >> 2;
+                    c = c >> 2;
+                    d = 512 * (g + c) + (f + e);
+                    if (z[a] == jd) {
+                        v[d] = Ec;
+                    } else {
+                        if (z[a] == ld) {
+                            v[d] = Fc;
+                        } else {
+                            if (z[a] == md) {
+                                v[d] = fighterId;
+                            } else {
+                                if (z[a] == md + 1) {
+                                    v[d] = fighterId;
+                                } else {
+                                    if (z[a] == nd) {
+                                        v[d] = cloneId;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            a = 0;
+            for (; a < od; a++) {
+                if (0 != A[a]) {
+                    e = floor(B[a].x) - 8;
+                    c = floor(B[a].y) - 8;
+                    if (!(0 > e || 496 <= e || 0 > c || 280 <= c)) {
+                        e = e >> 2;
+                        c = c >> 2;
+                        d = 512 * (g + c) + (f + e);
+                        v[d] = Hc;
+                    }
+                }
+            }
+            c = 0;
+            for (; 70 > c; c++) {
+                e = 0;
+                for (; 124 > e; e++) {
+                    b = (c + 2) * w + (e + 2);
+                    d = 2048 * (c + 2) + 4 * (e + 2);
+                    a = v[512 * (g + c) + (f + e)];
+                    if (0 == a) {
+                        if (x[b] == Gb) {
+                            a = Ob;
+                        } else {
+                            if (x[b] == Hb) {
+                                a = Qb;
+                            } else {
+                                if (x[b] == Ib) {
+                                    a = Rb;
+                                } else {
+                                    a = D[I[d]];
+                                    if (a == Hc) {
+                                        a = 0;
+                                    }
+                                    if (0 == a) {
+                                        a = D[I[d + 512 + 1]];
+                                    }
+                                    if (a == Hc) {
+                                        a = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    d = s;
+                    if (10 == backgroundDrawType) {
+                        d = Rc;
+                    } else {
+                        if (12 == backgroundDrawType) {
+                            if (a != r && a != gc && a != lc && a != oc && a != rc && a != Ac) {
+                                a = 0;
+                            }
+                        } else {
+                            if (14 == backgroundDrawType) {
+                                a = 0 == a ? Xb : 0;
+                            }
+                        }
+                    }
+                    v[512 * (g + c) + (f + e)] = d[a];
+                    if (16 == backgroundDrawType && 0 == a) {
+                        d = (s[Nc[ea]] & 255) + (s[Nc[fa]] & 255) >> 1;
+                        v[512 * (g + c) + (f + e)] = (s[Nc[ea]] >> 16 & 255) + (s[Nc[fa]] >> 16 & 255) >> 1 << 16 | (s[Nc[ea]] >> 8 & 255) + (s[Nc[fa]] >> 8 & 255) >> 1 << 8 | d;
+                    }
+                }
+            }
         }
-        ed(0); - 1 == Xa && Xa++;
-        1 == lb ? (cb ? rf(rb, "\u30af\u30ea\u30c3\u30af\u3067\u518d\u751f\u3001\uff2c\uff2f\uff21\uff24\u3067\u518d\u30b9\u30bf\u30fc\u30c8") : rf(rb, "Click to play, LOAD to restart."), lb = 0, Xa = 10) : 2 == lb && (cb ? rf(rb, "\u30a8\u30e9\u30fc") :
-            rf(rb, "Error"), lb = 0, Xa = 10);
-        1 == Xa && (ra = 0, 0 == kb && (g = "/score/dust2.php?a=", g += $a, g += "&b=" + (cb ? "0" : "1"), AjaxRequest(g, ""), 1 == me && "ok" == ne[0] ? kb = 1 : (kb = 2, mb = "err1" == ne[0] ? 1 : "err2" == ne[0] ? 2 : "err3" == ne[0] ? 3 : "err4" == ne[0] ? 4 : "err5" == ne[0] ? 5 : 0)), Xa++);
-        if (2 == Xa) 1 == kb ? 10 > nb ? cb ? rf(rb, "\u3082\u3046\u5c11\u3057\u4f5c\u308a\u8fbc\u3093\u3067\u4e0b\u3055\u3044\u3002") : rf(rb, "Please carefully created.") : cb ? rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\u8a18\u5165\u3057\u3066\uff2f\uff2b\u3092\u62bc\u3057\u3066\u4e0b\u3055\u3044") :
-            rf(rb, "Enter the title and click OK.") : 2 == kb && (cb ? 1 == mb ? rf(rb, "\u30e6\u30fc\u30b6\u30fc\u767b\u9332\u304c\u5fc5\u8981\u3067\u3059") : 2 == mb ? rf(rb, "1\u65e5\u306b1\u56de\u306e\u307f\u3067\u3059") : 3 == mb ? rf(rb, "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30c7\u30fc\u30bf") : 4 == mb ? rf(rb, "\u904e\u53bb12\u6642\u9593\u306e\u4f5c\u54c1\u6570\u304c50\u4ef6\u306b\u9054\u3057\u305f\u70ba\uff71\uff6f\uff8c\uff9f\u51fa\u6765\u307e\u305b\u3093") : 5 == mb ? rf(rb, "\u8a00\u8a9e\u30a8\u30e9\u30fc") : 6 == mb ? rf(rb, "\u4f5c\u8005\u306e\u307f\u3067\u3059") :
-                rf(rb, "\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u51fa\u6765\u307e\u305b\u3093") : 1 == mb ? rf(rb, "User registration is required.") : 2 == mb ? rf(rb, "1 time in 1 days only.") : 3 == mb ? rf(rb, "Download data.") : 4 == mb ? rf(rb, "Reached 50 posts in 12 hours. Cannot upload.") : 5 == mb ? rf(rb, "Language error.") : 6 == mb ? rf(rb, "Author only.") : rf(rb, "Cannot upload.")), Xa++;
-        else if (3 == Xa) {
-            oe(96, 100, 320, 100, 8421504);
-            tf(256, 114, "UPLOAD", 16752800);
-            uf(135);
-            if (1 == kb && 10 <= nb && (oe(140, 150, 232, 16, 16777215), vf(139, 149, 234, 0), Me(132, 142, 232, 16) &&
-                    (vf(139, 149, 234, 16711680), trueAfterMouseUpButOnlyForOneTick && (g = callPrompt("Text", sb), null != g && (sb = g))), rf(vb, sb), xf(vb, 141, 150, 230, 16, 230, 16, 0), d = Me(200, 172, 16, 12), tf(216, 186, "OK", d ? 16711680 : 16777215), d && trueAfterMouseUpButOnlyForOneTick))
-                if (2 > sb.length) cb ? rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\uff12\u6587\u5b57\u4ee5\u4e0a\u8a18\u5165\u3057\u3066\u4e0b\u3055\u3044") : rf(rb, "The title must be longer than 2 characters.");
-                else {
-                    g = sb;
-                    f = 0;
-                    c = g.length;
-                    for (d = 0; d < c; d++) e = g.charCodeAt(d), f = 0 <= e && 128 >= e || 65377 <= e && 65439 >= e ? f + 1 : f + 2;
-                    20 < f ? cb ? rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\uff11\uff10\u6587\u5b57\u4ee5\u4e0b\u3067\u8a18\u5165\u3057\u3066\u4e0b\u3055\u3044") :
-                        rf(rb, "The title must be shorter than 20 characters.") : Xa++
-                } d = Me(264, 172, 48, 12);
-            tf(296, 186, "CANCEL", d ? 16711680 : 16777215);
-            d && trueAfterMouseUpButOnlyForOneTick && (Xa = 5)
-        } else if (4 == Xa) {
-            sb = encodeURIComponent(sb);
-            if (0 == sb.length) {
-                Xa = 3;
-                cb ? rf(rb, "\u30a8\u30e9\u30fc") : rf(rb, "Error");
-                ed(1);
-                return
+        ed(0);
+        if (-1 == Xa) {
+            Xa++;
+        }
+        if (1 == lb) {
+            if (cb) {
+                rf(rb, "\u30af\u30ea\u30c3\u30af\u3067\u518d\u751f\u3001\uff2c\uff2f\uff21\uff24\u3067\u518d\u30b9\u30bf\u30fc\u30c8");
+            } else {
+                rf(rb, "Click to play, LOAD to restart.");
             }
-            saveGameFromScreen();
-            Yc(0);
-            g = "/score/dust2.php?a=";
-            g += $a;
-            g += "&b=" + (cb ? "0" : "1");
-            g += "&c=" + fb;
-            g += "&d=" + hb;
-            g += "&e=" + jb;
-            g += "&f=" + ob;
-            g += "&g=" + pb;
-            g += "&screenWidth=" + sb;
-            f = "i=" + eb;
-            f += "&j=" + gb;
-            f += "&k=" + ib;
-            AjaxRequest(g, f);
-            kb = 2;
-            Xa++
-        } else if (5 == Xa) Xa = 0;
-        else if (10 == Xa)
-            if (oe(128,
-                    288, 256, 70, 6291456), oe(132, 292, 248, 62, 6316128), tf(256, 302, "DOWNLOAD", 16752800), uf(323), 248 > Ne ? (tf(226, 345, "START", 16711680), tf(286, 345, "STOP", 16777215)) : (tf(226, 345, "START", 16777215), tf(286, 345, "STOP", 16711680)), trueAfterMouseUpButOnlyForOneTick) Xa = 0, isStopped = 248 > Ne ? 0 : 1;
-            else {
-                if (Sd[37] || Sd[39]) Xa = 0, isStopped = Sd[37] ? 0 : 1
+            lb = 0;
+            Xa = 10;
+        } else {
+            if (2 == lb) {
+                if (cb) {
+                    rf(rb, "\u30a8\u30e9\u30fc");
+                } else {
+                    rf(rb, "Error");
+                }
+                lb = 0;
+                Xa = 10;
             }
-        else if (20 == Xa) sb = "", Xa++;
-        else if (21 == Xa) {
-            oe(136, 289, 240, 99, 8421504);
-            oe(140, 297, 232, 16, 16777215);
-            vf(139, 296, 234, 0);
-            Me(132, 289, 232, 16) && (vf(139, 296, 234, 16711680), trueAfterMouseUpButOnlyForOneTick && (g = callPrompt("Text", sb), null != g && (sb = g)));
-            drawTextUsingImage(fontImage, 141, 300, sb.substr(0, 28),
-                16777215, 0);
-            3 == yb && (oe(288, 320, 84, 16, 16777215), vf(287, 319, 86, 0), Me(280, 312, 84, 16) && (vf(287, 319, 86, 16711680), trueAfterMouseUpButOnlyForOneTick && (g = callPrompt("setFont", tb), null != g && (tb = g))), drawTextUsingImage(fontImage, 289, 323, tb.substr(0, 10), 16777215, 0));
-            a = -1;
-            128 <= Ne && 268 > Ne && 314 <= Ie && 362 > Ie && (a = floor((Ie - 314) / 16), 0 == a && 0 != Pe && (yb = returnBetween0_MAX(yb + Pe, 5)), 1 == a && 0 != Pe && (zb = returnBetween0_MAX(zb + Pe, 3)), 2 == a && 0 != Pe && (Ab = returnBetween0_MAX(Ab + Pe, 10)));
-            drawTextUsingImage(fontImage, 140, 322, "font :" + fontsText[yb], 0 == a ? 16711680 : 16777215, 0);
-            drawTextUsingImage(fontImage, 140, 338, "style:" + fontFormat[zb], 1 == a ? 16711680 : 16777215, 0);
-            drawTextUsingImage(fontImage, 140, 354, "size :" + fontSizeArray[Ab], 2 == a ? 16711680 : 16777215, 0);
-            a = -1;
-            128 <= Ne && 368 > Ne && 362 <= Ie && 380 > Ie && (a = 248 > Ne ? 0 : 1, Ke && (0 == a ? Xa++ : Xa = 23));
-            drawTextUsingImage(fontImage, 206, 372, "OK", 0 == a ? 16711680 : 16777215, 0);
-            drawTextUsingImage(fontImage, 256, 372, "CANCEL", 1 == a ? 16711680 : 16777215, 0);
-            g = fontsText[yb];
-            3 == yb && (g = tb);
-            If(vb, sb, g, zb, fontSizeArray[Ab]);
-            g = Sb;
-            0 != Nc[ea] ? g = Nc[ea] : 0 != Nc[fa] && (g = Nc[fa]);
-            if (g == wc || g == Ob || g == Qb || g == Rb) g = Sb;
-            xf(vb, wb, xb, vb.f, 128, vb.f, 128, s[g])
-        } else if (22 == Xa) {
-            g = "palavras ofensivas aqui separadas por espaços** \u30bb\u30c3\u30af\u30b9 \u30a8\u30c3\u30c1 \u3061\u3093\u3053 \u30c1\u30f3\u30b3 \u307e\u3093\u3053 \u30de\u30f3\u30b3 \u539f\u7206 \u539f\u5b50\u7206 \u6838 \u88ab\u7206 \u6b7b \u6bba \u7968 \u8a55 \u62cd\u624b \u4eba\u6c17 \u53c2\u52a0 \u30a2\u30f3\u30b1\u30fc\u30c8 \u524a\u9664 \u6d88\u53bb ttp www. .com .jp".split(" ");
-            f = "";
-            for (a = 0; a < sb.length; a++) c = sb[a], " " != c && "\u3000" != c && (f += c);
-            f = f.toLowerCase();
-            for (a = 0; a < g.length && !(0 <= f.indexOf(g[a])); a++);
-            if (a != g.length) {
-                Xa = 23;
-                return
+        }
+        if (1 == Xa) {
+            scale = 0;
+            if (0 == kb) {
+                g = "/score/dust2.php?a=";
+                g = g + $a;
+                g = g + ("&b=" + (cb ? "0" : "1"));
+                AjaxRequest(g, "");
+                if (1 == me && "ok" == ne[0]) {
+                    kb = 1;
+                } else {
+                    kb = 2;
+                    mb = "err1" == ne[0] ? 1 : "err2" == ne[0] ? 2 : "err3" == ne[0] ? 3 : "err4" == ne[0] ? 4 : "err5" == ne[0] ? 5 : 0;
+                }
             }
-            g = fontsText[yb];
-            3 == yb && (g = tb);
-            If(vb, sb, g, zb, fontSizeArray[Ab]);
-            g = Sb;
-            0 != Nc[ea] ? g = Nc[ea] : 0 != Nc[fa] && (g = Nc[fa]);
-            if (g == wc || g == Ob || g == Qb || g == Rb) g = Sb;
-            for (c = 0; 128 > c && !(288 <= xb + c); c++)
-                for (e = 0; 496 > e && !(504 <= wb + e); e++) - 1 != vb.a[c * vb.b + e] && I[(xb + c) * screenWidth + (wb + e)] == Jb && (b = Bd(wb + e, xb + c, g, 0), 0 <= b && g == Nb && (J[b].x = 0.01 * Math.cos(Fa * PI / 32), J[b].y = 0.01 * -Math.sin(Fa * PI / 32), G[b] = Fa, I[(xb +
-                    c) * screenWidth + (wb + e)] = l));
-            Xa++
-        } else 23 == Xa && (Xa = 0);
-        ed(1)
+            Xa++;
+        }
+        if (2 == Xa) {
+            if (1 == kb) {
+                if (10 > nb) {
+                    if (cb) {
+                        rf(rb, "\u3082\u3046\u5c11\u3057\u4f5c\u308a\u8fbc\u3093\u3067\u4e0b\u3055\u3044\u3002");
+                    } else {
+                        rf(rb, "Please carefully created.");
+                    }
+                } else {
+                    if (cb) {
+                        rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\u8a18\u5165\u3057\u3066\uff2f\uff2b\u3092\u62bc\u3057\u3066\u4e0b\u3055\u3044");
+                    } else {
+                        rf(rb, "Enter the title and click OK.");
+                    }
+                }
+            } else {
+                if (2 == kb) {
+                    if (cb) {
+                        if (1 == mb) {
+                            rf(rb, "\u30e6\u30fc\u30b6\u30fc\u767b\u9332\u304c\u5fc5\u8981\u3067\u3059");
+                        } else {
+                            if (2 == mb) {
+                                rf(rb, "1\u65e5\u306b1\u56de\u306e\u307f\u3067\u3059");
+                            } else {
+                                if (3 == mb) {
+                                    rf(rb, "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u30c7\u30fc\u30bf");
+                                } else {
+                                    if (4 == mb) {
+                                        rf(rb, "\u904e\u53bb12\u6642\u9593\u306e\u4f5c\u54c1\u6570\u304c50\u4ef6\u306b\u9054\u3057\u305f\u70ba\uff71\uff6f\uff8c\uff9f\u51fa\u6765\u307e\u305b\u3093");
+                                    } else {
+                                        if (5 == mb) {
+                                            rf(rb, "\u8a00\u8a9e\u30a8\u30e9\u30fc");
+                                        } else {
+                                            if (6 == mb) {
+                                                rf(rb, "\u4f5c\u8005\u306e\u307f\u3067\u3059");
+                                            } else {
+                                                rf(rb, "\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u51fa\u6765\u307e\u305b\u3093");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (1 == mb) {
+                            rf(rb, "User registration is required.");
+                        } else {
+                            if (2 == mb) {
+                                rf(rb, "1 time in 1 days only.");
+                            } else {
+                                if (3 == mb) {
+                                    rf(rb, "Download data.");
+                                } else {
+                                    if (4 == mb) {
+                                        rf(rb, "Reached 50 posts in 12 hours. Cannot upload.");
+                                    } else {
+                                        if (5 == mb) {
+                                            rf(rb, "Language error.");
+                                        } else {
+                                            if (6 == mb) {
+                                                rf(rb, "Author only.");
+                                            } else {
+                                                rf(rb, "Cannot upload.");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Xa++;
+        } else {
+            if (3 == Xa) {
+                oe(96, 100, 320, 100, 8421504);
+                tf(256, 114, "UPLOAD", 16752800);
+                uf(135);
+                if (1 == kb && 10 <= nb && (oe(140, 150, 232, 16, 16777215), vf(139, 149, 234, 0), Me(132, 142, 232, 16) && (vf(139, 149, 234, 16711680), trueAfterMouseUpButOnlyForOneTick && (g = callPrompt("Text", sb), null != g && (sb = g))), rf(vb, sb), xf(vb, 141, 150, 230, 16, 230, 16, 0), d = Me(200, 172, 16, 12), tf(216, 186, "OK", d ? 16711680 : 16777215), d && trueAfterMouseUpButOnlyForOneTick)) {
+                    if (2 > sb.length) {
+                        if (cb) {
+                            rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\uff12\u6587\u5b57\u4ee5\u4e0a\u8a18\u5165\u3057\u3066\u4e0b\u3055\u3044");
+                        } else {
+                            rf(rb, "The title must be longer than 2 characters.");
+                        }
+                    } else {
+                        g = sb;
+                        f = 0;
+                        c = g.length;
+                        d = 0;
+                        for (; d < c; d++) {
+                            e = g.charCodeAt(d);
+                            f = 0 <= e && 128 >= e || 65377 <= e && 65439 >= e ? f + 1 : f + 2;
+                        }
+                        if (20 < f) {
+                            if (cb) {
+                                rf(rb, "\u30bf\u30a4\u30c8\u30eb\u3092\uff11\uff10\u6587\u5b57\u4ee5\u4e0b\u3067\u8a18\u5165\u3057\u3066\u4e0b\u3055\u3044");
+                            } else {
+                                rf(rb, "The title must be shorter than 20 characters.");
+                            }
+                        } else {
+                            Xa++;
+                        }
+                    }
+                }
+                d = Me(264, 172, 48, 12);
+                tf(296, 186, "CANCEL", d ? 16711680 : 16777215);
+                if (d && trueAfterMouseUpButOnlyForOneTick) {
+                    Xa = 5;
+                }
+            } else {
+                if (4 == Xa) {
+                    sb = encodeURIComponent(sb);
+                    if (0 == sb.length) {
+                        Xa = 3;
+                        if (cb) {
+                            rf(rb, "\u30a8\u30e9\u30fc");
+                        } else {
+                            rf(rb, "Error");
+                        }
+                        ed(1);
+                        return;
+                    }
+                    saveGameFromScreen();
+                    createGameSaveString(0);
+                    g = "/score/dust2.php?a=";
+                    g = g + $a;
+                    g = g + ("&b=" + (cb ? "0" : "1"));
+                    g = g + ("&c=" + fb);
+                    g = g + ("&d=" + hb);
+                    g = g + ("&e=" + jb);
+                    g = g + ("&f=" + ob);
+                    g = g + ("&g=" + pb);
+                    g = g + ("&screenWidth=" + sb);
+                    f = "i=" + eb;
+                    f = f + ("&j=" + gb);
+                    f = f + ("&k=" + ib);
+                    AjaxRequest(g, f);
+                    kb = 2;
+                    Xa++;
+                } else {
+                    if (5 == Xa) {
+                        Xa = 0;
+                    } else {
+                        if (10 == Xa) {
+                            if (oe(128, 288, 256, 70, 6291456), oe(132, 292, 248, 62, 6316128), tf(256, 302, "DOWNLOAD", 16752800), uf(323), 248 > Ne ? (tf(226, 345, "START", 16711680), tf(286, 345, "STOP", 16777215)) : (tf(226, 345, "START", 16777215), tf(286, 345, "STOP", 16711680)), trueAfterMouseUpButOnlyForOneTick) {
+                                Xa = 0;
+                                isStopped = 248 > Ne ? 0 : 1;
+                            } else {
+                                if (Sd[37] || Sd[39]) {
+                                    Xa = 0;
+                                    isStopped = Sd[37] ? 0 : 1;
+                                }
+                            }
+                        } else {
+                            if (20 == Xa) {
+                                sb = "";
+                                Xa++;
+                            } else {
+                                if (21 == Xa) {
+                                    oe(136, 289, 240, 99, 8421504);
+                                    oe(140, 297, 232, 16, 16777215);
+                                    vf(139, 296, 234, 0);
+                                    if (Me(132, 289, 232, 16)) {
+                                        vf(139, 296, 234, 16711680);
+                                        if (trueAfterMouseUpButOnlyForOneTick) {
+                                            g = callPrompt("Text", sb);
+                                            if (null != g) {
+                                                sb = g;
+                                            }
+                                        }
+                                    }
+                                    drawTextUsingImage(fontImage, 141, 300, sb.substr(0, 28), 16777215, 0);
+                                    if (3 == yb) {
+                                        oe(288, 320, 84, 16, 16777215);
+                                        vf(287, 319, 86, 0);
+                                        if (Me(280, 312, 84, 16)) {
+                                            vf(287, 319, 86, 16711680);
+                                            if (trueAfterMouseUpButOnlyForOneTick) {
+                                                g = callPrompt("setFont", tb);
+                                                if (null != g) {
+                                                    tb = g;
+                                                }
+                                            }
+                                        }
+                                        drawTextUsingImage(fontImage, 289, 323, tb.substr(0, 10), 16777215, 0);
+                                    }
+                                    a = -1;
+                                    if (128 <= Ne && 268 > Ne && 314 <= Ie && 362 > Ie) {
+                                        a = floor((Ie - 314) / 16);
+                                        if (0 == a && 0 != Pe) {
+                                            yb = returnBetween0_MAX(yb + Pe, 5);
+                                        }
+                                        if (1 == a && 0 != Pe) {
+                                            zb = returnBetween0_MAX(zb + Pe, 3);
+                                        }
+                                        if (2 == a && 0 != Pe) {
+                                            Ab = returnBetween0_MAX(Ab + Pe, 10);
+                                        }
+                                    }
+                                    drawTextUsingImage(fontImage, 140, 322, "font :" + fontsText[yb], 0 == a ? 16711680 : 16777215, 0);
+                                    drawTextUsingImage(fontImage, 140, 338, "style:" + fontFormat[zb], 1 == a ? 16711680 : 16777215, 0);
+                                    drawTextUsingImage(fontImage, 140, 354, "size :" + fontSizeArray[Ab], 2 == a ? 16711680 : 16777215, 0);
+                                    a = -1;
+                                    if (128 <= Ne && 368 > Ne && 362 <= Ie && 380 > Ie) {
+                                        a = 248 > Ne ? 0 : 1;
+                                        if (Ke) {
+                                            if (0 == a) {
+                                                Xa++;
+                                            } else {
+                                                Xa = 23;
+                                            }
+                                        }
+                                    }
+                                    drawTextUsingImage(fontImage, 206, 372, "OK", 0 == a ? 16711680 : 16777215, 0);
+                                    drawTextUsingImage(fontImage, 256, 372, "CANCEL", 1 == a ? 16711680 : 16777215, 0);
+                                    g = fontsText[yb];
+                                    if (3 == yb) {
+                                        g = tb;
+                                    }
+                                    If(vb, sb, g, zb, fontSizeArray[Ab]);
+                                    g = Sb;
+                                    if (0 != Nc[ea]) {
+                                        g = Nc[ea];
+                                    } else {
+                                        if (0 != Nc[fa]) {
+                                            g = Nc[fa];
+                                        }
+                                    }
+                                    if (g == wc || g == Ob || g == Qb || g == Rb) {
+                                        g = Sb;
+                                    }
+                                    xf(vb, wb, xb, vb.f, 128, vb.f, 128, s[g]);
+                                } else {
+                                    if (22 == Xa) {
+                                        g = "palavras ofensivas aqui separadas por espa\u00e7os** \u30bb\u30c3\u30af\u30b9 \u30a8\u30c3\u30c1 \u3061\u3093\u3053 \u30c1\u30f3\u30b3 \u307e\u3093\u3053 \u30de\u30f3\u30b3 \u539f\u7206 \u539f\u5b50\u7206 \u6838 \u88ab\u7206 \u6b7b \u6bba \u7968 \u8a55 \u62cd\u624b \u4eba\u6c17 \u53c2\u52a0 \u30a2\u30f3\u30b1\u30fc\u30c8 \u524a\u9664 \u6d88\u53bb ttp www. .com .jp".split(" ");
+                                        f = "";
+                                        a = 0;
+                                        for (; a < sb.length; a++) {
+                                            c = sb[a];
+                                            if (" " != c && "\u3000" != c) {
+                                                f = f + c;
+                                            }
+                                        }
+                                        f = f.toLowerCase();
+                                        a = 0;
+                                        for (; a < g.length && !(0 <= f.indexOf(g[a])); a++) {}
+                                        if (a != g.length) {
+                                            Xa = 23;
+                                            return;
+                                        }
+                                        g = fontsText[yb];
+                                        if (3 == yb) {
+                                            g = tb;
+                                        }
+                                        If(vb, sb, g, zb, fontSizeArray[Ab]);
+                                        g = Sb;
+                                        if (0 != Nc[ea]) {
+                                            g = Nc[ea];
+                                        } else {
+                                            if (0 != Nc[fa]) {
+                                                g = Nc[fa];
+                                            }
+                                        }
+                                        if (g == wc || g == Ob || g == Qb || g == Rb) {
+                                            g = Sb;
+                                        }
+                                        c = 0;
+                                        for (; 128 > c && !(288 <= xb + c); c++) {
+                                            e = 0;
+                                            for (; 496 > e && !(504 <= wb + e); e++) {
+                                                if (-1 != vb.a[c * vb.b + e] && I[(xb + c) * screenWidth + (wb + e)] == Jb) {
+                                                    b = Bd(wb + e, xb + c, g, 0);
+                                                    if (0 <= b && g == Nb) {
+                                                        J[b].x = 0.01 * Math.cos(Fa * PI / 32);
+                                                        J[b].y = 0.01 * -Math.sin(Fa * PI / 32);
+                                                        G[b] = Fa;
+                                                        I[(xb + c) * screenWidth + (wb + e)] = l;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Xa++;
+                                    } else {
+                                        if (23 == Xa) {
+                                            Xa = 0;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ed(1);
     }
-}
+};
 
 function bf(a) {
     var c, b, d, e, f;
@@ -1161,14 +1820,14 @@ function bf(a) {
         if (1 == Aa && (f = 0 == a ? trueAfterMouseUpButOnlyForOneTick : Ve), f) {
             var m = ia - ka,
                 n = ja - la;
-            if (!(1 >= oa && 1 == isStopped && 1 >= ra && 0 == m && 0 == n && 3 != Aa)) {
+            if (!(1 >= penSize && 1 == isStopped && 1 >= scale && 0 == m && 0 == n && 3 != Aa)) {
                 var t = max(max(abs(m), abs(n)), 1),
                     m = floor((m << 8) / t),
                     n = floor((n << 8) / t),
                     u = (ka << 8) + 127,
                     F = (la << 8) + 127;
                 for (c = 0; c <= t; c++, u += m, F += n) {
-                    var M = oa + 0,
+                    var M = penSize + 0,
                         $ = (u >> 8) - M;
                     b = (F >> 8) - M;
                     var Ca = $ + 2 * M,
@@ -1195,8 +1854,8 @@ function bf(a) {
     } else if (45 == elementType) {
         b = (ja >> 2) * w + (ia >> 2);
         if(f && 0 == x[b]) {
-            P[b] += na.x * (oa + 1);
-            Q[b] += na.y * (oa + 1);
+            P[b] += na.x * (penSize + 1);
+            Q[b] += na.y * (penSize + 1);
             setToVector(e, P[b], Q[b]);
             if(10 < vectorLength2(e) && 1 == isStopped) {
                 normalize(e);
@@ -1204,7 +1863,7 @@ function bf(a) {
                 Q[b] = 10 * e.y;
             } 
         };
-    } else if (46 == elementType) f && (b = (ja >> 2) * w + (ia >> 2), d = oa + 1, 0 == a ? (0 == x[b - w] && (P[b - w] += d, Q[b - w] += d), 0 == x[b + 1] && (P[b + 1] -= d, Q[b + 1] += d), 0 == x[b + w] && (P[b + w] -= d, Q[b + w] -= d), 0 == x[b - 1] && (P[b - 1] += d, Q[b - 1] -= d), 0 == x[b - w + 1] && (P[b - w + 1] += d, Q[b - w + 1] += d), 0 == x[b + w + 1] && (P[b + w + 1] -= d, Q[b + w + 1] += d), 0 == x[b + w -
+    } else if (46 == elementType) f && (b = (ja >> 2) * w + (ia >> 2), d = penSize + 1, 0 == a ? (0 == x[b - w] && (P[b - w] += d, Q[b - w] += d), 0 == x[b + 1] && (P[b + 1] -= d, Q[b + 1] += d), 0 == x[b + w] && (P[b + w] -= d, Q[b + w] -= d), 0 == x[b - 1] && (P[b - 1] += d, Q[b - 1] -= d), 0 == x[b - w + 1] && (P[b - w + 1] += d, Q[b - w + 1] += d), 0 == x[b + w + 1] && (P[b + w + 1] -= d, Q[b + w + 1] += d), 0 == x[b + w -
         1] && (P[b + w - 1] -= d, Q[b + w - 1] -= d), 0 == x[b - w - 1] && (P[b - w - 1] += d, Q[b - w - 1] -= d)) : (0 == x[b - w] && (P[b - w] -= d, Q[b - w] += d), 0 == x[b - 1] && (P[b - 1] += d, Q[b - 1] += d), 0 == x[b + w] && (P[b + w] += d, Q[b + w] -= d), 0 == x[b + 1] && (P[b + 1] -= d, Q[b + 1] -= d), 0 == x[b - w - 1] && (P[b - w - 1] -= d, Q[b - w - 1] += d), 0 == x[b + w - 1] && (P[b + w - 1] += d, Q[b + w - 1] += d), 0 == x[b + w + 1] && (P[b + w + 1] += d, Q[b + w + 1] -= d), 0 == x[b - w + 1] && (P[b - w + 1] -= d, Q[b - w + 1] -= d)));
     else if (49 == elementType || 50 == elementType || 52 == elementType) {
         if (e = ia, f = ja >> 2 << 2, b = (ja >> 2 << 7) + (ia >> 2), m && 0 == x[b])
@@ -1245,8 +1904,8 @@ function bf(a) {
         }
     } else if (54 == elementType || 55 == elementType || 56 == elementType || 57 == elementType || 58 == elementType) {
         if (1 == Aa && (f = 0 == a ? trueAfterMouseUpButOnlyForOneTick : Ve), f) {
-            c = oa;
-            56 != elementType && 0 == oa && (c = 1);
+            c = penSize;
+            56 != elementType && 0 == penSize && (c = 1);
             m = floor(ia / ha) - floor(ka / ha);
             n = floor(ja / ha) - floor(la / ha);
             t = max(max(abs(m), abs(n)),
@@ -1260,7 +1919,7 @@ function bf(a) {
                     for (e = d; e <= d + c; e++) 2 > e || Ee <= e || 2 > f || Fe <= f || (e - $) * (e - $) + (f - Ca) * (f - Ca) > floor(c * c / 4) || (b = f * w + e, 54 == elementType ? 0 == x[b] && (x[b] = Gb, P[b] = Q[b] = se[b] = te[b] = ue[b] = 0) : 55 == elementType ? (x[b] == Hb ? Of(e, f, -1) : x[b] == Ib && Of(e, f, 1), x[b] = -2) : 56 == elementType ? 0 == x[b] && (x[b] = -2, P[b] = Q[b] = se[b] = te[b] = ue[b] = 0) : 57 == elementType ? 0 == x[b] && (x[b] = Hb, P[b] = Q[b] = se[b] = te[b] = ue[b] = 0, Of(e, f, 1)) : 58 == elementType && 0 ==
                         x[b] && (x[b] = Ib, P[b] = Q[b] = se[b] = te[b] = ue[b] = 0, Of(e, f, -1)));
             setGravity();
-            if (56 == elementType && 0 == oa)
+            if (56 == elementType && 0 == penSize)
                 for (m = ia - ka, n = ja - la, t = max(max(abs(m), abs(n)), 1), m = floor((m << 8) / t), n = floor((n << 8) / t), u = (ka << 8) + 127, F = (la << 8) + 127, a = 0; a <= t; a++, u += m, F += n)
                     for (b = p; b < qd; b++) u >> 8 == floor(C[b].x) && F >> 8 == floor(C[b].y) && rd(b--);
             if (54 == elementType || 56 == elementType || 57 == elementType || 58 == elementType)
@@ -1287,8 +1946,8 @@ function bf(a) {
             for (f = 8; 288 > f; f++, b += 16)
                 for (e = 8; 504 > e; e++, b++) d = (f >> 2) * w + (e >> 2), 0 == x[d] && I[b] == Kb ? I[b] = Jb : x[d] >= Gb && (I[b] = Kb)
         }
-    } else 64 == elementType ? (wb = ia, xb = ja - 14, m && (Xa = 20)) : 65 == elementType ? m ? 0 == Ga ? (Ha = Ja = ia, Ia = Ka = ja) : 1 == isStopped && 1 >= ra && Ha == Ja && Ia == Ka || Id() : b && 0 == Ga ? Hd() : f && 0 ==
-        Ga && (Ja = ia, Ka = ja) : 68 == elementType && f && (sa -= (Ne - Qf) / (1 << ra), ta -= (Ie - Rf) / (1 << ra), sa = minInsideRange(sa, 0, 496 - (496 >> ra)), ta = minInsideRange(ta, 0, 280 - [280, 140, 70, 35, 18][ra]))
+    } else 64 == elementType ? (wb = ia, xb = ja - 14, m && (Xa = 20)) : 65 == elementType ? m ? 0 == Ga ? (Ha = Ja = ia, Ia = Ka = ja) : 1 == isStopped && 1 >= scale && Ha == Ja && Ia == Ka || Id() : b && 0 == Ga ? Hd() : f && 0 ==
+        Ga && (Ja = ia, Ka = ja) : 68 == elementType && f && (scaleXPosition -= (Ne - Qf) / (1 << scale), scaleYPosition -= (Ie - Rf) / (1 << scale), scaleXPosition = minInsideRange(scaleXPosition, 0, 496 - (496 >> scale)), scaleYPosition = minInsideRange(scaleYPosition, 0, 280 - [280, 140, 70, 35, 18][scale]))
 }
 
 
@@ -1380,26 +2039,26 @@ function handlesDrawingMethods() {
                 for (e = (b << 11) + (c << 2), a = 0; 16 > a; a++) v[e] = Tc[x[d]][a], e += u[a];
     if (2 == backgroundDrawType)
         for (b = 2, d = 258; b < Fe; b++, d += 4)
-            for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), f = floor(10 * normalize(t)), 2 > f || (48 < f && (f = 48), a = (c << 2) + 2, n = (b << 2) + 2, lf(a, n, a + t.x * f, n + t.y * f, 0 | f << 17)));
+            for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), f = floor(10 * normalize(t)), 2 > f || (48 < f && (f = 48), a = (c << 2) + 2, n = (b << 2) + 2, drawSimulationLine(a, n, a + t.x * f, n + t.y * f, 0 | f << 17)));
     else if (9 == backgroundDrawType)
         for (b = 2, d = 258; b < Fe; b++, d += 4)
             for (c = 2; c < Ee; c++, d++) 0 == x[d] && (setToVector(t, P[d], Q[d]), a = vectorLength2(t), 0.2 > a || (g = floor(min(16 * a, 80)),
-                f = 0, 0 < ue[d] && (f = floor(min(ue[d] * a, 80))), m = 0, 0 > ue[d] && (m = floor(min(-ue[d] * a, 80))), a = (c << 2) + 5 * P[d], n = (b << 2) + 5 * Q[d], e = (c + 1 << 2) + 5 * P[d + 1], F = (b << 2) + 5 * Q[d + 1], lf(a, n, e, F, f << 16 | g << 8 | m), e = (c << 2) + 5 * P[d + w], F = (b + 1 << 2) + 5 * Q[d + w], lf(a, n, e, F, f << 16 | g << 8 | m)));
+                f = 0, 0 < ue[d] && (f = floor(min(ue[d] * a, 80))), m = 0, 0 > ue[d] && (m = floor(min(-ue[d] * a, 80))), a = (c << 2) + 5 * P[d], n = (b << 2) + 5 * Q[d], e = (c + 1 << 2) + 5 * P[d + 1], F = (b << 2) + 5 * Q[d + 1], drawSimulationLine(a, n, e, F, f << 16 | g << 8 | m), e = (c << 2) + 5 * P[d + w], F = (b + 1 << 2) + 5 * Q[d + w], drawSimulationLine(a, n, e, F, f << 16 | g << 8 | m)));
     else if (14 == backgroundDrawType)
         for (a = 288 * screenWidth; 4096 < a; a--) I[a] == Jb ? (f = 255 - (255 - (v[a] >> 16 & 255) >> 1), g = 255 - (255 - (v[a] >> 8 & 255) >> 1), m = 255 - (255 - (v[a] & 255) >> 1), v[a] = f << 16 | g << 8 | m) : I[a] < Lb && (v[a] = 0);
-    if (2 <= ya) {
+    if (2 <= gridLines) {
         c = [0, 0, 124, 62, 32, 20, 16, 12, 8, 4];
         t = [0, 0, 70, 35, 32, 20, 16, 12, 8, 4];
         g = [0, 0, 0, 0, -8, 8, 8, -4, 0, 0];
         f = [0,
             0, 0, 0, 12, 0, -4, -4, 0, 0
         ];
-        for (a = 0; 496 > a; a += c[ya])
-            for (b = 0, d = 8 * screenWidth + 8 + a + g[ya]; 280 > b; b++, d += screenWidth) 6316128 != v[d] && (v[d] = 3355443);
-        for (a = 0; 280 > a; a += t[ya])
-            for (c = 0, d = (8 + a + f[ya]) * screenWidth + 8; 496 > c; c++, d++) 6316128 != v[d] && (v[d] = 3355443)
+        for (a = 0; 496 > a; a += c[gridLines])
+            for (b = 0, d = 8 * screenWidth + 8 + a + g[gridLines]; 280 > b; b++, d += screenWidth) 6316128 != v[d] && (v[d] = 3355443);
+        for (a = 0; 280 > a; a += t[gridLines])
+            for (c = 0, d = (8 + a + f[gridLines]) * screenWidth + 8; 496 > c; c++, d++) 6316128 != v[d] && (v[d] = 3355443)
     }
-    if (1 <= ya) {
+    if (1 <= gridLines) {
         b = 0;
         for (d = 8 * screenWidth + 256; 280 > b; b++, d += screenWidth) 6316128 != v[d] && (v[d] = 4194304);
         c = 0;
@@ -1474,9 +2133,9 @@ function Wf() {
     if (54 == fa || 55 == fa || 56 == fa || 57 == fa || 58 == fa) g = true;
     if (!ga && 0 == Xa) {
         if (f || g) {
-            var m = oa;
-            f && 56 != ea && 0 == oa && (m = 1);
-            g && 56 != fa && 0 == oa && (m = 1);
+            var m = penSize;
+            f && 56 != ea && 0 == penSize && (m = 1);
+            g && 56 != fa && 0 == penSize && (m = 1);
             e = 4210752;
             f && (e |= 16711680);
             g && (e |= 255);
@@ -1490,16 +2149,16 @@ function Wf() {
             if (45 == ea || 25 ==
                 ea) e |= 16711680;
             if (45 == fa || 25 == fa) e |= 255;
-            lf(ia + 0.5, ja + 0.5, ia + 0.5 + 30 * na.x, ja + 0.5 + 30 * na.y, e)
+            drawSimulationLine(ia + 0.5, ja + 0.5, ia + 0.5 + 30 * na.x, ja + 0.5 + 30 * na.y, e)
         }
-        if (5 == ea || 5 == fa) e = 4210752, 5 == ea && (e |= 16711680), 5 == fa && (e |= 255), lf(ia + 0.5, ja + 0.5, ia + 0.5 + 20 * Math.cos(Fa * PI / 32), ja + 0.5 - 20 * Math.sin(Fa * PI / 32), e);
-        1 == Aa && (We && (ea < numberOfTypesOfElements || f) || Xe && (fa < numberOfTypesOfElements || g)) && lf(Da, Ea, ia, ja, 16711680);
-        if (64 == ea || 64 == fa) e = 4210752, 64 == ea && (e |= 16711680), 64 == fa && (e |= 255), lf(wb, xb, wb, xb + 13, e), lf(wb, xb, wb + 200, xb, e), lf(wb, xb + 13, wb + 200, xb + 13, e);
+        if (5 == ea || 5 == fa) e = 4210752, 5 == ea && (e |= 16711680), 5 == fa && (e |= 255), drawSimulationLine(ia + 0.5, ja + 0.5, ia + 0.5 + 20 * Math.cos(Fa * PI / 32), ja + 0.5 - 20 * Math.sin(Fa * PI / 32), e);
+        1 == Aa && (We && (ea < numberOfTypesOfElements || f) || Xe && (fa < numberOfTypesOfElements || g)) && drawSimulationLine(Da, Ea, ia, ja, 16711680);
+        if (64 == ea || 64 == fa) e = 4210752, 64 == ea && (e |= 16711680), 64 == fa && (e |= 255), drawSimulationLine(wb, xb, wb, xb + 13, e), drawSimulationLine(wb, xb, wb + 200, xb, e), drawSimulationLine(wb, xb + 13, wb + 200, xb + 13, e);
         if (65 == ea || 65 == fa)
             if (0 == Ga) {
-                if (65 == ea && We || 65 == fa && Xe) lf(Ha, Ia, Ja,
-                    Ia, 16761024), lf(Ha, Ka, Ja, Ka, 16761024), lf(Ha, Ia, Ha, Ka, 16761024), lf(Ja, Ia, Ja, Ka, 16761024)
-            } else c = ia - floor((Ja - Ha) / 2), b = ja - floor((Ka - Ia) / 2), e = Ja - Ha, a = Ka - Ia, lf(c, b, c + e, b, 12632319), lf(c, b + a, c + e, b + a, 12632319), lf(c, b, c, b + a, 12632319), lf(c + e, b, c + e, b + a, 12632319);
+                if (65 == ea && We || 65 == fa && Xe) drawSimulationLine(Ha, Ia, Ja,
+                    Ia, 16761024), drawSimulationLine(Ha, Ka, Ja, Ka, 16761024), drawSimulationLine(Ha, Ia, Ha, Ka, 16761024), drawSimulationLine(Ja, Ia, Ja, Ka, 16761024)
+            } else c = ia - floor((Ja - Ha) / 2), b = ja - floor((Ka - Ia) / 2), e = Ja - Ha, a = Ka - Ia, drawSimulationLine(c, b, c + e, b, 12632319), drawSimulationLine(c, b + a, c + e, b + a, 12632319), drawSimulationLine(c, b, c, b + a, 12632319), drawSimulationLine(c + e, b, c + e, b + a, 12632319);
         if (53 == ea || 53 == fa) {
             e = 4210752;
             53 == ea && (e |= 16711680);
@@ -1514,7 +2173,7 @@ function Wf() {
                     c = d + f[a] & 511;
                     b = floor((d + f[a]) / 512);
                     break
-                } - 1 != Ua ? lf(Ua & 511, Ua / 512, c, b, e) : lf(c, b, ia, ja, e)
+                } - 1 != Ua ? drawSimulationLine(Ua & 511, Ua / 512, c, b, e) : drawSimulationLine(c, b, ia, ja, e)
         }
     }
 }
@@ -1535,21 +2194,132 @@ var Zf = 0.01,
     te = dg,
     ue = new Float32Array(re * w);
 
-
-function df() {
+/*
+function createFluidForces() {
     var a, c, b, d, e, f, g;
-    if (1 == xa) {
-        for (a = 2; a < Ee; a++) P[128 + a] = P[9088 + a], P[9216 + a] = P[256 + a], Q[128 + a] = Q[9088 + a], Q[9216 + a] = Q[256 + a];
-        for (b = 256; b < Fe << 7; b += w) P[b + 1] = P[b + Ee - 1], P[b + Ee] = P[b + 2], Q[b + 1] = Q[b + Ee - 1], Q[b + Ee] = Q[b + 2]
+
+    if (1 == sideLoop) {
+        // Create forces for sides of the screen. 
+        // Top / Bottom sides.
+        for (a = 2; a < Ee; a++) {
+            P[128 + a] = P[9088 + a];
+            P[9216 + a] = P[256 + a];
+            Q[128 + a] = Q[9088 + a];
+            Q[9216 + a] = Q[256 + a];
+        }
+        
+        // Left / Right sides.
+        for (b = 256; b < Fe << 7; b += w) {
+            // Left and Right force, for left / right side
+            P[b + 1] = P[b + Ee - 1]; 
+            P[b + Ee] = P[b + 2];
+            // Top and bottom force, for left / right side
+            Q[b + 1] = Q[b + Ee - 1];
+            Q[b + Ee] = Q[b + 2];
+        }
     }
+	
     b = 2;
     f = 258;
-    for (g = f + 124; b < Fe; b++, f += 4, g += w)
-        for (; f < g; f++) 1 <= x[f] || (ue[f] *= 0.9, ue[f] -= (P[f + 1] - P[f - 1] + Q[f + w] - Q[f - w]) * $f);
+    // Diffusion
+    for (g = f + 124; b < Fe; b++, f += 4, g += w) {
+        for (; f < g; f++) {
+            if (1 <= x[f]) {
+                //
+            } else {
+                ue[f] *= .9;
+                // The force will be the result of forces around this area, combinated.
+                ue[f] -= (P[f + 1] - P[f - 1] + Q[f + w] - Q[f - w]) * $f;
+            }
+        }
+    }
+    
+    // Advect
     for (a = 0; 2 > a; a++) {
         b = 2;
         for (f = 257; b < Fe; b++, f += 128) {
-            1 == xa && (ue[f + 125] = 0.5 * (ue[f] + ue[f + 1]));
+            if(1 == sideLoop) {
+                ue[f + 125] = 0.5 * (ue[f] + ue[f + 1]);
+            }
+            for (c = 1; c < Ee; c++, f++) {
+                if(1 <= x[f]) {
+                    // Because the obfuscator transforms if/else clause in ( comparation ) || ( do_something ) form, the right desobfuscation method is to invert the logic in the comparation sentence. But...
+                    // Yeah, I know that it's weird leaving the the if like that but I think I can use the 1 <= x[f] fact instead x[f] > 1
+                } else if(1 <= x[f + 1]) {
+                    // Same here, and other places of the code that I leave if/else condition empty.
+                } else {
+                    ue[f] = 0.5 * (ue[f] + ue[f + 1]);
+                }
+				for (c = Ee; 2 <= c; c--, f--) 1 <= x[f] || 1 <= x[f - 1] || (ue[f] = 0.5 * (ue[f] + ue[f - 1]))
+			}
+			c = 2;
+			for (f = 130; c < Ee; c++, f++) {
+				for (b = 1; b < Fe; b++, f += 128) 1 <= x[f] || 1 <= x[f + w] || (ue[f] = 0.5 * (ue[f] + ue[f + w]));
+					for (b = Fe; 2 <= b; b--, f -= 128) 1 <= x[f] || 1 <= x[f - w] || (ue[f] = 0.5 * (ue[f] + ue[f - w]))
+			}
+		}
+    }
+    
+    
+    if (1 == sideLoop) {
+        for (a = 2; a < Ee; a++) ue[128 + a] = ue[9088 + a], ue[9216 + a] = ue[256 + a];
+        for (b = 256; b < Fe << 7; b += w) ue[b + 1] = ue[b + Ee - 1], ue[b + Ee] = ue[b + 2]
+    }
+    var m, n, t, u, F, M;
+    b = 2;
+    f = 258;
+    for (g = f + 124; b < Fe; b++, f += 4, g += w)
+        for (; f < g; f++) 1 <= x[f] || (a = f + 1, c = f - 1, d = f + w, e = f - w, m = 3 * abs(P[f]), n = 3 * abs(Q[f]), t = 6 * P[f] * (P[a] -
+                P[c]) + m * (2 * P[f] - P[a] - P[c]), u = 6 * Q[f] * (P[d] - P[e]) + n * (2 * P[f] - P[d] - P[e]), F = (1 <= x[a] ? ue[f] : ue[a]) - (1 <= x[c] ? ue[f] : ue[c]), M = P[a] + P[c] - 2 * P[f], M += P[d] + P[e] - 2 * P[f], t = minInsideRange(t + u + F, -10, 10), se[f] = P[f] + Zf * (-t + M), t = 6 * P[f] * (Q[a] - Q[c]) + m * (2 * Q[f] - Q[a] - Q[c]), u = 6 * Q[f] * (Q[d] - Q[e]) + n * (2 * Q[f] - Q[d] - Q[e]), F = (1 <= x[d] ? ue[f] : ue[d]) - (1 <= x[e] ? ue[f] : ue[e]), M = Q[a] + Q[c] - 2 * Q[f], M += Q[d] + Q[e] - 2 * Q[f], t = minInsideRange(t + u + F, -10, 10), te[f] = Q[f] + Zf * (-t + M), 1 <= x[c] && 0 > se[f] && (se[f] *= 0.9), 1 <= x[a] && 0 < se[f] && (se[f] *= 0.9), 1 <= x[e] && 0 > te[f] && (te[f] *= 0.9), 1 <= x[d] &&
+            0 < te[f] && (te[f] *= 0.9));
+    f = P;
+    P = se;
+    se = f;
+    f = Q;
+    Q = te;
+    te = f
+}*/
+
+function createFluidForces() {
+    var a, c, b, d, e, f, g;
+	
+    if (1 == sideLoop) {
+		// Create forces for sides of the screen. 
+        // Top / Bottom sides.
+        for (a = 2; a < Ee; a++) {
+			P[128 + a] = P[9088 + a];
+			P[9216 + a] = P[256 + a];
+			Q[128 + a] = Q[9088 + a];
+			Q[9216 + a] = Q[256 + a];
+		}
+		// Left / Right sides.
+        for (b = 256; b < Fe << 7; b += w) {
+			// Left and Right force, for left / right side
+			P[b + 1] = P[b + Ee - 1];
+			P[b + Ee] = P[b + 2];
+			// Top and bottom force, for left / right side
+			Q[b + 1] = Q[b + Ee - 1];
+			Q[b + Ee] = Q[b + 2];
+		}
+    }
+	
+    b = 2;
+    f = 258;
+	// Diffusion
+    for (g = f + 124; b < Fe; b++, f += 4, g += w) {
+		for (; f < g; f++) {
+			if(1 <= x[f]) {
+				//
+			} else {
+				ue[f] *= 0.9;
+				ue[f] -= (P[f + 1] - P[f - 1] + Q[f + w] - Q[f - w]) * $f;
+			}
+		}
+	}
+    for (a = 0; 2 > a; a++) {
+        b = 2;
+        for (f = 257; b < Fe; b++, f += 128) {
+            1 == sideLoop && (ue[f + 125] = 0.5 * (ue[f] + ue[f + 1]));
             for (c = 1; c < Ee; c++, f++) 1 <= x[f] || 1 <= x[f + 1] || (ue[f] = 0.5 * (ue[f] + ue[f + 1]));
             for (c = Ee; 2 <=
                 c; c--, f--) 1 <= x[f] || 1 <= x[f - 1] || (ue[f] = 0.5 * (ue[f] + ue[f - 1]))
@@ -1560,7 +2330,7 @@ function df() {
             for (b = Fe; 2 <= b; b--, f -= 128) 1 <= x[f] || 1 <= x[f - w] || (ue[f] = 0.5 * (ue[f] + ue[f - w]))
         }
     }
-    if (1 == xa) {
+    if (1 == sideLoop) {
         for (a = 2; a < Ee; a++) ue[128 + a] = ue[9088 + a], ue[9216 + a] = ue[256 + a];
         for (b = 256; b < Fe << 7; b += w) ue[b + 1] = ue[b + Ee - 1], ue[b + Ee] = ue[b + 2]
     }
@@ -1578,17 +2348,26 @@ function df() {
     Q = te;
     te = f
 }
+
 var eg = new Float32Array(296 * screenWidth),
     Re = new Float32Array(296 * screenWidth),
     U = new Float32Array(296 * screenWidth),
     V = new Float32Array(296 * screenWidth),
     Se = 0;
 
-function fg() {
+function bard_forcefield() {
     var a, c, b, d = new Vector,
         e;
-    for (b = c = 0; 280 > c; c++, b += 16)
-        for (a = 0; 496 > a; a++, b++) d.x = -0.5 - a, d.y = -0.5 - c, e = normalize2(d) + 16, e = 100 / (e * e), U[b] = d.x * e, V[b] = d.y * e
+    for (b = c = 0; 280 > c; c++, b += 16) {
+        for (a = 0; 496 > a; a++, b++) {
+            d.x = -0.5 - a;
+            d.y = -0.5 - c;
+            e = normalize2(d) + 16;
+            e = 100 / (e * e);
+            U[b] = d.x * e;
+            V[b] = d.y * e
+        }
+    } 
 }
 
 function hg(a, c) {
@@ -1626,7 +2405,7 @@ function ig(a, c) {
 function Dd() {
     var a, c, b;
     for (b = 296 * screenWidth - 1; 0 <= b; b--) eg[b] = 0, Re[b] = isGravityOn ? 1 : 0;
-    fg();
+    bard_forcefield();
     c = 10;
     for (b = 258; 288 > c; c += 4, b += 4)
         for (a = 10; 504 > a; a += 4, b++) {
@@ -1641,7 +2420,7 @@ function Dd() {
 }
 
 function Of(a, c, b) {
-    0 == Se && fg();
+    0 == Se && bard_forcefield();
     a = (a << 2) + 2;
     c = (c << 2) + 2;
     0 < b ? hg(a, c) : ig(a, c);
@@ -1756,8 +2535,8 @@ function ff() {
 
 
 function Tf() {
-    for (var a, c, b, d = null, e = null, f = 0, g = 0, m = 0; m < sd; m++) 0 == ud[m] ? (d = C[vd[m]], f = E[vd[m]]) : 1 == ud[m] ? (d = stickManBodyPoints[vd[m] * hd + 1], f = 16769198) : 2 == ud[m] && (d = B[vd[m]], f = s[A[vd[m]]]), 0 == wd[m] ? (e = C[xd[m]], g = E[xd[m]]) : 1 == wd[m] ? (e = stickManBodyPoints[xd[m] * hd + 1], g = 16769198) : 2 == wd[m] && (e = B[xd[m]], g = s[A[xd[m]]]), a = (f >> 16 & 255) + (g >> 16 & 255) >> 1, c = (f >> 8 & 255) + (g >> 8 & 255) >> 1, b = (f & 255) + (g & 255) >> 1, 0 != Va ? 1 == Va ? lf(d.x, d.y, e.x, e.y, 14540253) : 2 == Va && lf(d.x, d.y, e.x, e.y, 2236962) : 5 != td[m] && (10 == backgroundDrawType ? (a = floor((2989 * a + 5866 * c + 1145 * b) / 1E4), lf(d.x, d.y, e.x, e.y,
-        a << 16 | a << 8 | a)) : 14 == backgroundDrawType ? lf(d.x, d.y, e.x, e.y, 0) : lf(d.x, d.y, e.x, e.y, a << 16 | c << 8 | b))
+    for (var a, c, b, d = null, e = null, f = 0, g = 0, m = 0; m < sd; m++) 0 == ud[m] ? (d = C[vd[m]], f = E[vd[m]]) : 1 == ud[m] ? (d = stickManBodyPoints[vd[m] * hd + 1], f = 16769198) : 2 == ud[m] && (d = B[vd[m]], f = s[A[vd[m]]]), 0 == wd[m] ? (e = C[xd[m]], g = E[xd[m]]) : 1 == wd[m] ? (e = stickManBodyPoints[xd[m] * hd + 1], g = 16769198) : 2 == wd[m] && (e = B[xd[m]], g = s[A[xd[m]]]), a = (f >> 16 & 255) + (g >> 16 & 255) >> 1, c = (f >> 8 & 255) + (g >> 8 & 255) >> 1, b = (f & 255) + (g & 255) >> 1, 0 != Va ? 1 == Va ? drawSimulationLine(d.x, d.y, e.x, e.y, 14540253) : 2 == Va && drawSimulationLine(d.x, d.y, e.x, e.y, 2236962) : 5 != td[m] && (10 == backgroundDrawType ? (a = floor((2989 * a + 5866 * c + 1145 * b) / 1E4), drawSimulationLine(d.x, d.y, e.x, e.y,
+        a << 16 | a << 8 | a)) : 14 == backgroundDrawType ? drawSimulationLine(d.x, d.y, e.x, e.y, 0) : drawSimulationLine(d.x, d.y, e.x, e.y, a << 16 | c << 8 | b))
 }
 var qd = p,
     mf = p + 4E4,
@@ -1912,22 +2691,22 @@ function Vg(a, c) {
 }
 
 
-function ef() {
+function moveParticles() {
     var a, c = new Vector;
     if (!ga && 0 == Xa) {
         if (47 == ea && Ke || 47 == fa && Oe) {
             a = new Vector;
             Ig = 0;
-            for (var b = p; b < qd && !(Kg <= Ig); b++) D[b] != Nb && (a.x = ia - floor(C[b].x), a.y = ja - floor(C[b].y), fastLength(a) < oa * oa * 7 + 1 && (Jg[Ig++] = b))
+            for (var b = p; b < qd && !(Kg <= Ig); b++) D[b] != Nb && (a.x = ia - floor(C[b].x), a.y = ja - floor(C[b].y), fastLength(a) < penSize * penSize * 7 + 1 && (Jg[Ig++] = b))
         }
         if (47 == ea && We || 47 == fa && Xe)
             for (b = 0; b < Ig; b++) J[Jg[b]].x += 0.1 * (ia - C[Jg[b]].x), J[Jg[b]].y += 0.1 * (ja - C[Jg[b]].y);
         else Ig = 0
     }
     for (a = p; a < qd; a++) a = D[a] <= bc ? a - Xg(a, c) : D[a] <= mc ? a - Yg(a, c) : D[a] <= tc ? a - Zg(a, c) : D[a] <= Dc ? a - $g(a, c) : a - ah(a, c);
-    if (1 > xa)
+    if (1 > sideLoop)
         for (a = p; a < qd; a++) ve[H[a]] || rd(a--);
-    else if (1 == xa)
+    else if (1 == sideLoop)
         for (a = p; a < qd; a++)
             if (!ve[H[a]]) {
                 a: {
@@ -2143,6 +2922,11 @@ function Xg(a, c) {
     return 0
 }
 
+debugCounter = 0
+
+function debugSometimes( text, limit = 5 ) {
+    if (debugCounter++ % limit == 0) console.log(text)
+}
 
 function Yg(a, c) {
     var b, d, e, f, g, m, n, t, u;
@@ -3303,7 +4087,7 @@ function processPlayerMove(k) {
                 }
             }
         }
-        if (1 == xa) {
+        if (1 == sideLoop) {
             w = 4;
             for (; 5 >= w; w++) {
                 if (s = i = 0, 8 > stickManBodyPoints[b + w].x ? (i = 502, s = ~~stickManOldBodyPoints[b + w].y) : 504 <= stickManBodyPoints[b + w].x ? (i = 10, s = ~~stickManOldBodyPoints[b + w].y) : 8 > stickManBodyPoints[b + w].y ? (i = ~~stickManOldBodyPoints[b + w].x, s = 286) : 288 <= stickManBodyPoints[b + w].y && (i = ~~stickManOldBodyPoints[b + w].x, s = 10), 0 != i + s) {
@@ -3554,7 +4338,7 @@ function processFighterMove(k) {
                 }
             }
         }
-        if (1 == xa) {
+        if (1 == sideLoop) {
             i = 4;
             for (; 5 >= i; i++) {
                 if (b = c = 0, 8 > stickManBodyPoints[index + i].x ? (c = 502, b = ~~stickManOldBodyPoints[index + i].y) : 504 <= stickManBodyPoints[index + i].x ? (c = 10, b = ~~stickManOldBodyPoints[index + i].y) : 8 > stickManBodyPoints[index + i].y ? (c = ~~stickManOldBodyPoints[index + i].x, b = 286) : 288 <= stickManBodyPoints[index + i].y && (c = ~~stickManOldBodyPoints[index + i].x, b = 10), 0 != c + b) {
@@ -3709,16 +4493,16 @@ function Uf() {
     14 == backgroundDrawType && (F = u = t = 0, M = 13421772);
     for (b = a = 0; a < counterStickman; a++, b += hd) {
         if (z[a] <= ld + 3) {
-            if (z[a] != jd + 3 && z[a] != ld + 3) lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), lf(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), lf(stickManBodyPoints[b +
+            if (z[a] != jd + 3 && z[a] != ld + 3) drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), drawSimulationLine(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), drawSimulationLine(stickManBodyPoints[b +
                 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), e = z[a] <= jd + 3 ? f : g;
             else {
-                lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
                 if (140 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
                 if (135 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
                 if (130 < ze[a]) continue;
-                lf(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
+                drawSimulationLine(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
                 if (125 < ze[a]) continue;
                 e = z[a] <= jd + 3 ? m : n
             }
@@ -3737,22 +4521,22 @@ function Uf() {
             if (12 == backgroundDrawType)
                 for (c = floor(minInsideRange(stickManBodyPoints[b + 0].x, 8, 503)), $ = floor(minInsideRange(stickManBodyPoints[b + 0].y, 8, 283)), e = $ - 4; e <= $ + 4; e += 4)
                     for (d = c - 4; d <= c + 4; d += 4) Eb[(e << 9) + d] = 536870911
-        } else if (z[a] <= md + 2) lf(stickManBodyPoints[b + 0].x, stickManBodyPoints[b + 0].y, stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, t), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), lf(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 3, 3, t);
+        } else if (z[a] <= md + 2) drawSimulationLine(stickManBodyPoints[b + 0].x, stickManBodyPoints[b + 0].y, stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, t), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, u), drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, u), drawSimulationLine(stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y, stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, u), drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u), oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 3, 3, t);
         else if (z[a] <= md + 3) {
-            lf(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y,
+            drawSimulationLine(stickManBodyPoints[b + 1].x, stickManBodyPoints[b + 1].y, stickManBodyPoints[b + 2].x, stickManBodyPoints[b + 2].y,
                 u);
             if (145 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 3].x, stickManBodyPoints[b + 3].y, stickManBodyPoints[b + 5].x, stickManBodyPoints[b + 5].y, u);
             if (140 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 4].x, stickManBodyPoints[b + 4].y, stickManBodyPoints[b + 7].x, stickManBodyPoints[b + 7].y, u);
             if (135 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 6].x, stickManBodyPoints[b + 6].y, stickManBodyPoints[b + 9].x, stickManBodyPoints[b + 9].y, u);
             if (130 < ze[a]) continue;
-            lf(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
+            drawSimulationLine(stickManBodyPoints[b + 8].x, stickManBodyPoints[b + 8].y, stickManBodyPoints[b + 10].x, stickManBodyPoints[b + 10].y, u);
             if (125 < ze[a]) continue;
             oe(stickManBodyPoints[b + 0].x - 1, stickManBodyPoints[b + 0].y - 1, 2, 2, t)
-        } else z[a] <= nd && (d = 9465872, 14 == backgroundDrawType && (d = 0), ye[b] == jd ? (lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, stickManBodyPoints[b].x +
-            3, stickManBodyPoints[b].y + 2, d)) : ye[b] == md ? (lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d)) : ye[b] == Lb ? (lf(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), lf(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 2, d), lf(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y + 3, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 3, d)) : oe(stickManBodyPoints[b].x, stickManBodyPoints[b].y, 4, 4, d));
+        } else z[a] <= nd && (d = 9465872, 14 == backgroundDrawType && (d = 0), ye[b] == jd ? (drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, stickManBodyPoints[b].x +
+            3, stickManBodyPoints[b].y + 2, d)) : ye[b] == md ? (drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 3, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 2, d)) : ye[b] == Lb ? (drawSimulationLine(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y, d), drawSimulationLine(stickManBodyPoints[b].x, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 1, stickManBodyPoints[b].x + 3, stickManBodyPoints[b].y + 2, d), drawSimulationLine(stickManBodyPoints[b].x + 1, stickManBodyPoints[b].y + 3, stickManBodyPoints[b].x + 2, stickManBodyPoints[b].y + 3, d)) : oe(stickManBodyPoints[b].x, stickManBodyPoints[b].y, 4, 4, d));
         if (z[a] <= md + 3 && 13 == backgroundDrawType)
             for (c = 0; 6 > c; c++) d = floor(minInsideRange(stickManBodyPoints[b + c].x, 8, 503)), e = floor(minInsideRange(stickManBodyPoints[b + c].y, 8, 287)), Eb[(e << 9) + d] = 3E3
     }
@@ -3848,7 +4632,7 @@ function hf() {
                         pd(a);
                         break
                     }
-                    1 == xa && (8 > F ? (I[(M << 9) + floor(F + 496)] <= l ? (B[a].x += 496, W[a].x *= 0.8, mg(2, a)) : W[a].x *= -0.8, F = B[a].x + W[a].x * t) : 504 <= F && (I[(M << 9) + floor(F - 496)] <=
+                    1 == sideLoop && (8 > F ? (I[(M << 9) + floor(F + 496)] <= l ? (B[a].x += 496, W[a].x *= 0.8, mg(2, a)) : W[a].x *= -0.8, F = B[a].x + W[a].x * t) : 504 <= F && (I[(M << 9) + floor(F - 496)] <=
                         l ? (B[a].x -= 496, W[a].x *= 0.8, mg(2, a)) : W[a].x *= -0.8, F = B[a].x + W[a].x * t), 8 > M ? (I[(M + 280 << 9) + ~~F] <= l ? (B[a].y += 280, W[a].y *= 0.8, mg(2, a)) : W[a].y *= -0.8, M = B[a].y + W[a].y * t) : 288 <= M && (I[(M - 280 << 9) + ~~F] <= l ? (B[a].y -= 280, W[a].y *= 0.5, mg(2, a)) : W[a].y *= -0.8, M = B[a].y + W[a].y * t));
                     if (4 > F || screenWidth - 4 <= F || 4 > M || 292 <= M) {
                         pd(a);
@@ -4382,7 +5166,7 @@ function drawCompositeTextUsingImage(a, c, b, d, e, f) {
 }
 var bi = 0;
 
-function lf(a, c, b, d, e) {
+function drawSimulationLine(a, c, b, d, e) {
     var f = ~~b - ~~a,
         g = ~~d - ~~c,
         m = max(max(abs(f), abs(g)), 1),
@@ -4397,10 +5181,10 @@ function vf(a, c, b, d) {
     var e = 18;
     b--;
     e--;
-    lf(a, c, a + b, c, d);
-    lf(a, c + e, a + b, c + e, d);
-    lf(a, c, a, c + e, d);
-    lf(a + b, c, a + b, c + e, d)
+    drawSimulationLine(a, c, a + b, c, d);
+    drawSimulationLine(a, c + e, a + b, c + e, d);
+    drawSimulationLine(a, c, a, c + e, d);
+    drawSimulationLine(a + b, c, a + b, c + e, d)
 }
 
 function oe(a, c, b, d, e) {
@@ -4435,7 +5219,7 @@ function kf(a, c, b, d, e) {
     var f = imageHandlerForScreen,
         g = 8,
         m = 496,
-        n = 496 >> ra,
+        n = 496 >> scale,
         t, u;
     if (0 != m && 0 != c)
         for (n = ~~((n << 8) / m), e = ~~((e << 8) / c), b <<= 8, d <<= 8, 0 > g && (b += n * -g), 0 > a && (d += e * -a), m = g + m > screenWidth ? screenWidth : ~~(g + m), c = a + c > screenHeight ? screenHeight : ~~(a + c), g = 0 > g ? 0 : ~~g, a = (0 > a ? 0 : ~~a) * screenWidth + g, t = screenWidth - (m - g), m = a + m - g, c *= screenWidth; a < c; a += t, m += screenWidth, d += e)
