@@ -4442,7 +4442,7 @@ function kf(a, c, b, d, e) {
             for (g = ((d >> 8) * f.b << 8) + b; a < m; a++, g += n) u = f.a[g >> 8], v[a] = u
 }
 
-function xf(a, c, b, d, e, f, g, m) {
+/*function xf(a, c, b, d, e, f, g, m) {
     var n, t, u, F, M;
     f = floor((f << 8) / d);
     g = floor((g << 8) / e);
@@ -4455,7 +4455,55 @@ function xf(a, c, b, d, e, f, g, m) {
     b = 0 > b ? 0 : floor(b);
     for (var $ = m >> 16 & 255, Ca = m >> 8 & 255, Pb = m & 255, $b, ub; b < e; b++, t += g)
         for (u = b * screenWidth + c, F = ((t >> 8) * a.b << 8) + n, m = c; m < d; m++, u++, F += f) M = a.a[F >> 8], -1 != M && ($b = $ * (M >> 16 & 255) >> 8, ub = Ca * (M >> 8 & 255) >> 8, M = Pb * (M & 255) >> 8, v[u] = $b << 16 | ub << 8 | M)
+}*/
+// drawTexturedRegion ?
+function xf(texture, startX, startY, width, height, scaleX, scaleY, colorMask) {
+    var offsetX, offsetY, pixelIndex, textureOffset, pixelColor;
+    
+    // Ajusta os fatores de escala para corresponder ao tamanho da área de destino
+    scaleX = floor((scaleX << 8) / width);
+    scaleY = floor((scaleY << 8) / height);
+    
+    offsetY = offsetX = 0;
+    
+    // Ajusta a posição inicial caso esteja fora da tela
+    if (startX < 0) offsetX += scaleX * -startX;
+    if (startY < 0) offsetY += scaleY * -startY;
+    
+    // Define os limites finais da área com base nas dimensões da tela
+    var endX = startX + width > screenWidth ? screenWidth : floor(startX + width);
+    var endY = startY + height > screenHeight ? screenHeight : floor(startY + height);
+    
+    // Garante que a área inicial seja dentro da tela
+    startX = startX < 0 ? 0 : floor(startX);
+    startY = startY < 0 ? 0 : floor(startY);
+    
+    // Extrai os canais RGB da máscara de cor
+    var maskRed = (colorMask >> 16) & 255;
+    var maskGreen = (colorMask >> 8) & 255;
+    var maskBlue = colorMask & 255;
+
+    // Itera sobre as linhas da área retangular
+    for (var y = startY; y < endY; y++, offsetY += scaleY) {
+        pixelIndex = y * screenWidth + startX; // Índice no buffer de destino
+        textureOffset = ((offsetY >> 8) * texture.b << 8) + offsetX;
+
+        // Itera sobre os pixels na linha atual
+        for (var x = startX; x < endX; x++, pixelIndex++, textureOffset += scaleX) {
+            // Obtém a cor do pixel da textura
+            pixelColor = texture.a[textureOffset >> 8];
+            if (pixelColor != -1) { // Apenas processa se não for transparente
+                var red = maskRed * ((pixelColor >> 16) & 255) >> 8;
+                var green = maskGreen * ((pixelColor >> 8) & 255) >> 8;
+                var blue = maskBlue * (pixelColor & 255) >> 8;
+
+                // Combina os canais e escreve no buffer de destino
+                v[pixelIndex] = (red << 16) | (green << 8) | blue;
+            }
+        }
+    }
 }
+        
 
 function uf(a) {
     var c = rb.f;
